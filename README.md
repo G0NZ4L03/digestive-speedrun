@@ -85,6 +85,9 @@ cd digestive-speedrun
 # Instalar dependencias
 npm install
 
+# Generar iconos PWA (opcional, ya están generados)
+npm run generate-icons
+
 # Iniciar servidor de desarrollo
 npm run dev
 
