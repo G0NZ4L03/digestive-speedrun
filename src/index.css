@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dark-bg: #121212;
+  --color-dark-surface: #1E1E1E;
+  --color-dark-success: #10B981;
+  --color-dark-alert: #EF4444;
+}
+
+body {
+  background-color: var(--color-dark-bg);
+  color: rgb(209 213 219);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+}
