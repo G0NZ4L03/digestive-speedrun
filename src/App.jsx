@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useNotifications } from './hooks/useNotifications';
+import { useProtocolDate } from './hooks/useProtocolDate';
 import { Toggle } from './components/Toggle';
 import { Slider } from './components/Slider';
 import { GastricTimer } from './components/GastricTimer';
 import { BristolScale } from './components/BristolScale';
-import { Bell, Calendar, Save } from 'lucide-react';
+import { ProtocolSettings } from './components/ProtocolSettings';
+import { HistoryView } from './components/HistoryView';
+import { Bell, Calendar, Save, Settings, History as HistoryIcon } from 'lucide-react';
 
 // ============================================================================
 // APP.JSX - COMPONENTE PRINCIPAL
@@ -71,6 +75,12 @@ function App() {
   // Hook para notificaciones push
   const { permission, requestPermission, showNotification } = useNotifications();
 
+  // Hook para fecha de inicio del protocolo
+  const { startDate, currentDay, setStartDate } = useProtocolDate();
+
+  // Estado para la vista actual (dashboard vs histórico vs settings)
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'history' | 'settings'
+
   // ============================================================================
   // HANDLERS - LÓGICA DE NEGOCIO
   // ============================================================================
@@ -110,14 +120,36 @@ function App() {
   // ============================================================================
   return (
     <div className="min-h-screen p-4 pb-24">
-      {/* Header: Título + contador de días */}
+      {/* Header: Título + contador de días + navegación */}
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-dark-success mb-1">
-          Digestive SpeedRun
-        </h1>
-        <p className="text-gray-500 text-sm">
-          Día {Math.floor((Date.now() - new Date('2026-10-01').getTime()) / (1000 * 60 * 60 * 24)) + 1} de 14
-        </p>
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <h1 className="text-2xl font-bold text-dark-success mb-1">
+              Digestive SpeedRun
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Día {currentDay} de 14
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentView('history')}
+              className={`p-2 rounded-lg touch-manipulation ${
+                currentView === 'history' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400'
+              }`}
+            >
+              <HistoryIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setCurrentView('settings')}
+              className={`p-2 rounded-lg touch-manipulation ${
+                currentView === 'settings' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400'
+              }`}
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Banner de activación de notificaciones (solo si no hay permiso) */}
@@ -131,104 +163,123 @@ function App() {
         </button>
       )}
 
-      {/* Módulo 1: Timer de vaciado gástrico */}
-      <section className="mb-6">
-        <GastricTimer onTimerComplete={handleTimerComplete} />
-      </section>
+      {/* Vista: Dashboard principal */}
+      {currentView === 'dashboard' && (
+        <>
+          {/* Módulo 1: Timer de vaciado gástrico */}
+          <section className="mb-6">
+            <GastricTimer onTimerComplete={handleTimerComplete} />
+          </section>
 
-      {/* Módulo 2: Adherencia diaria */}
-      <section className="mb-6">
-        <h2 className="text-lg font-medium text-gray-100 mb-3 flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
-          Adherencia Diaria
-        </h2>
-        <div className="space-y-3">
-          <Toggle
-            label="Arroz recién hecho y baboso"
-            description="Evitar almidón resistente"
-            value={adherence.freshRice}
-            onChange={(val) => setAdherence({ ...adherence, freshRice: val })}
-          />
-          <Toggle
-            label="Proteína escalfada/blanda"
-            description="Muy blanda, escalfada"
-            value={adherence.softProtein}
-            onChange={(val) => setAdherence({ ...adherence, softProtein: val })}
-          />
-          <Toggle
-            label="Cero edulcorantes artificiales"
-            description="Sin sucralosa ni similares"
-            value={adherence.noSweeteners}
-            onChange={(val) => setAdherence({ ...adherence, noSweeteners: val })}
-          />
-          <Toggle
-            label="Cero alimentos/bebidas frías"
-            description="Todo tibi o caliente"
-            value={adherence.noColdFood}
-            onChange={(val) => setAdherence({ ...adherence, noColdFood: val })}
-          />
-          <Slider
-            label="Horas de ayuno nocturno"
-            description="Objetivo: >12h"
-            value={adherence.fastingHours}
-            onChange={(val) => setAdherence({ ...adherence, fastingHours: val })}
-            min={0}
-            max={16}
-          />
-        </div>
-      </section>
+          {/* Módulo 2: Adherencia diaria */}
+          <section className="mb-6">
+            <h2 className="text-lg font-medium text-gray-100 mb-3 flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Adherencia Diaria
+            </h2>
+            <div className="space-y-3">
+              <Toggle
+                label="Arroz recién hecho y baboso"
+                description="Evitar almidón resistente"
+                value={adherence.freshRice}
+                onChange={(val) => setAdherence({ ...adherence, freshRice: val })}
+              />
+              <Toggle
+                label="Proteína escalfada/blanda"
+                description="Muy blanda, escalfada"
+                value={adherence.softProtein}
+                onChange={(val) => setAdherence({ ...adherence, softProtein: val })}
+              />
+              <Toggle
+                label="Cero edulcorantes artificiales"
+                description="Sin sucralosa ni similares"
+                value={adherence.noSweeteners}
+                onChange={(val) => setAdherence({ ...adherence, noSweeteners: val })}
+              />
+              <Toggle
+                label="Cero alimentos/bebidas frías"
+                description="Todo tibi o caliente"
+                value={adherence.noColdFood}
+                onChange={(val) => setAdherence({ ...adherence, noColdFood: val })}
+              />
+              <Slider
+                label="Horas de ayuno nocturno"
+                description="Objetivo: >12h"
+                value={adherence.fastingHours}
+                onChange={(val) => setAdherence({ ...adherence, fastingHours: val })}
+                min={0}
+                max={16}
+              />
+            </div>
+          </section>
 
-      {/* Módulo 3: Síntomas */}
-      <section className="mb-6">
-        <h2 className="text-lg font-medium text-gray-100 mb-3 flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
-          Síntomas
-        </h2>
-        <div className="space-y-3">
-          <Slider
-            label="Dolor Nervio Frénico"
-            description="Pinzamiento clavícula derecha"
-            value={symptoms.phrenicPain}
-            onChange={(val) => setSymptoms({ ...symptoms, phrenicPain: val })}
-          />
-          <Slider
-            label="Distensión Abdominal / Gas"
-            description="Sensación de hinchazón"
-            value={symptoms.bloating}
-            onChange={(val) => setSymptoms({ ...symptoms, bloating: val })}
-          />
-          <Slider
-            label="Reflujo / Acidez"
-            description="Sensación de ardor"
-            value={symptoms.reflux}
-            onChange={(val) => setSymptoms({ ...symptoms, reflux: val })}
-          />
-          <BristolScale
-            value={symptoms.bristolScale}
-            onChange={(val) => setSymptoms({ ...symptoms, bristolScale: val })}
-          />
-        </div>
-      </section>
+          {/* Módulo 3: Síntomas */}
+          <section className="mb-6">
+            <h2 className="text-lg font-medium text-gray-100 mb-3 flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Síntomas
+            </h2>
+            <div className="space-y-3">
+              <Slider
+                label="Dolor Nervio Frénico"
+                description="Pinzamiento clavícula derecha"
+                value={symptoms.phrenicPain}
+                onChange={(val) => setSymptoms({ ...symptoms, phrenicPain: val })}
+              />
+              <Slider
+                label="Distensión Abdominal / Gas"
+                description="Sensación de hinchazón"
+                value={symptoms.bloating}
+                onChange={(val) => setSymptoms({ ...symptoms, bloating: val })}
+              />
+              <Slider
+                label="Reflujo / Acidez"
+                description="Sensación de ardor"
+                value={symptoms.reflux}
+                onChange={(val) => setSymptoms({ ...symptoms, reflux: val })}
+              />
+              <BristolScale
+                value={symptoms.bristolScale}
+                onChange={(val) => setSymptoms({ ...symptoms, bristolScale: val })}
+              />
+            </div>
+          </section>
 
-      {/* Módulo 4: Notas libres */}
-      <section className="mb-6">
-        <h2 className="text-lg font-medium text-gray-100 mb-3">Notas</h2>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Observaciones adicionales..."
-          className="w-full p-4 bg-dark-surface text-gray-100 rounded-xl resize-none h-24 focus:outline-none focus:ring-2 focus:ring-dark-success"
+          {/* Módulo 4: Notas libres */}
+          <section className="mb-6">
+            <h2 className="text-lg font-medium text-gray-100 mb-3">Notas</h2>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Observaciones adicionales..."
+              className="w-full p-4 bg-dark-surface text-gray-100 rounded-xl resize-none h-24 focus:outline-none focus:ring-2 focus:ring-dark-success"
+            />
+          </section>
+
+          {/* Botón de guardado del log diario */}
+          <button
+            onClick={saveDailyLog}
+            className="w-full py-4 bg-dark-success text-white font-bold rounded-xl touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          >
+            <Save className="w-5 h-5" />
+            Guardar Registro Diario
+          </button>
+        </>
+      )}
+
+      {/* Vista: Histórico */}
+      {currentView === 'history' && (
+        <HistoryView />
+      )}
+
+      {/* Vista: Configuración */}
+      {currentView === 'settings' && (
+        <ProtocolSettings
+          startDate={startDate}
+          currentDay={currentDay}
+          onDateChange={setStartDate}
         />
-      </section>
-
-      {/* Botón de guardado del log diario */}
-      <button
-        onClick={saveDailyLog}
-        className="w-full py-4 bg-dark-success text-white font-bold rounded-xl touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
-      >
-        <Save className="w-5 h-5" />
-        Guardar Registro Diario
-      </button>
+      )}
     </div>
   );
 }
@@ -239,18 +290,25 @@ export default App;
  * DECISIONES DE DISEÑO:
  * - Estado distribuido: Cada módulo tiene su propio key en localStorage
  * - Auto-save: No hay botón de guardar individual (excepto log diario)
- * - Contador de días: Calculado desde fecha fija (2026-10-01)
+ * - Contador de días: Calculado dinámicamente desde fecha configurable
  * - Banner de notificaciones: Solo aparece si no hay permiso
+ * - Navegación por vistas: Dashboard, Histórico, Configuración
  * - pb-24: Padding bottom para no ocultar contenido detrás de controles móviles
  *
+ * CAMBIOS RECIENTES:
+ * - Añadido hook useProtocolDate para gestión de fecha de inicio
+ * - Añadido componente ProtocolSettings para configuración
+ * - Añadido componente HistoryView para visualización de logs
+ * - Añadido navegación entre vistas (dashboard/history/settings)
+ * - Día del protocolo ahora es configurable y persistente
+ *
  * FUTURO: Mejoras posibles:
- * - Vista de histórico de logs con gráficos de evolución
  * - Exportación de datos (CSV, JSON) para compartir con médico
- * - Configuración de fecha de inicio del protocolo
  * - Añadir más tipos de síntomas según evolución
  * - Añadir módulo de medicación/suplementos
  * - Añadir recordatorios programados (ej: cada 4h infusión)
  * - Considerar migrar a IndexedDB para datos más grandes
  * - Añadir modo oscuro/claro (actualmente solo dark)
  * - Añadir animaciones de transición entre secciones
+ * - Añadir gráficos de evolución en el histórico
  */
