@@ -8,6 +8,7 @@ import { GastricTimer } from './components/GastricTimer';
 import { BristolScale } from './components/BristolScale';
 import { ProtocolSettings } from './components/ProtocolSettings';
 import { HistoryView } from './components/HistoryView';
+import { ProgressBar } from './components/ProgressBar';
 import { Bell, Calendar, Save, Settings, History as HistoryIcon } from 'lucide-react';
 
 // ============================================================================
@@ -130,6 +131,7 @@ function App() {
             <p className="text-gray-500 text-sm">
               Día {currentDay} de 14
             </p>
+            <ProgressBar currentDay={currentDay} totalDays={14} />
           </div>
           <div className="flex gap-2">
             <button
