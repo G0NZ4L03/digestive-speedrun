@@ -1,0 +1,47 @@
+<!doctype html>
+<!--
+  ============================================================================
+  INDEX.HTML - DIGESTIVE SPEEDRUN TRACKER
+  ============================================================================
+
+  Este es el punto de entrada HTML de la aplicación PWA.
+  Es minimalista por diseño: toda la lógica de UI está en React.
+
+  CARACTERÍSTICAS PWA:
+  - Manifest.json: Habilita instalación como app nativa
+  - Theme color: Define el color de la barra de estado en móviles
+  - Viewport: Optimizado para móvil (sin zoom accidental)
+  - Meta tags: SEO y descripción para instaladores
+
+  IMPORTANTE: El div con id="root" es donde React monta la aplicación.
+-->
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/digestive-speedrun/icon.svg" />
+    <!-- Viewport optimizado para móvil: previene zoom accidental y asegura escala correcta -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- Color de tema para PWA: coincide con nuestro dark mode (#121212) -->
+    <meta name="theme-color" content="#121212" />
+    <!-- Descripción para SEO y stores de apps -->
+    <meta name="description" content="Tracker clínico para protocolo de recuperación intestinal" />
+    <!-- Manifest PWA: habilita instalación como app nativa -->
+    <link rel="manifest" href="/digestive-speedrun/manifest.json" />
+    <title>Digestive SpeedRun Tracker</title>
+    <script type="module" crossorigin src="/digestive-speedrun/assets/index-Bi90KuGA.js"></script>
+    <link rel="stylesheet" crossorigin href="/digestive-speedrun/assets/index-BsI_rkGA.css">
+  </head>
+  <body>
+    <!-- Root div: React monta toda la UI aquí -->
+    <div id="root"></div>
+    <!-- Script de entrada: module type permite usar import/export -->
+  </body>
+</html>
+
+<!--
+  NOTAS DE DISEÑO:
+  - No hay CSS inline: todo va en Tailwind
+  - No hay scripts externos: todo bundle por Vite
+  - Cero dependencias en este archivo: máxima limpieza
+  - Icono SVG personalizado: estómago + reloj + checkmark
+-->
