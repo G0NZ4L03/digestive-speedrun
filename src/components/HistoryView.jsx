@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { History, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { History, ChevronDown, ChevronUp, Trash2, Download } from 'lucide-react';
+import { exportToJSON, exportToCSV, exportToSimpleCSV } from '../utils/exportData';
 
 // ============================================================================
 // COMPONENTE: HistoryView
@@ -111,6 +112,33 @@ export function HistoryView() {
           </button>
         )}
       </div>
+
+      {/* Botones de exportación */}
+      {logs.length > 0 && (
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => exportToCSV()}
+            className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            CSV
+          </button>
+          <button
+            onClick={() => exportToSimpleCSV()}
+            className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            CSV Simple
+          </button>
+          <button
+            onClick={() => exportToJSON()}
+            className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            JSON
+          </button>
+        </div>
+      )}
 
       {logs.map((log, index) => {
         const adherence = calculateAdherence(log.adherence);

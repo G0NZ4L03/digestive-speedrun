@@ -46,8 +46,25 @@ Registro al final del día para cruzar acciones con respuesta fisiológica:
 ### Timer de Vaciado Gástrico
 - Botón prominente: "Fin Comida Sólida"
 - Cuenta atrás de 45 minutos
+- **Persistencia**: El timer continúa contando aunque cierres la app
 - Alerta visual + Web Push Notification al completar
 - Mensaje: "Vaciado gástrico inicial completado. Vía libre para infusión tibia"
+
+### Configuración del Protocolo
+- Fecha de inicio configurable
+- Cálculo automático del día actual del protocolo
+- Persistencia de la configuración
+
+### Histórico de Logs
+- Visualización de todos los logs guardados
+- Logs expandibles para ver detalles completos
+- Indicadores de adherencia (porcentaje) con colores semánticos
+- Indicadores de severidad de síntomas con colores semánticos
+- Funcionalidad de borrar logs individuales o todos
+- **Exportación de datos**:
+  - CSV completo (todas las métricas)
+  - CSV simplificado (solo métricas clave)
+  - JSON (para backup o análisis técnico)
 
 ## 🎨 Diseño UI/UX
 
@@ -135,9 +152,10 @@ La app está configurada como Progressive Web App y puede instalarse:
 
 ## 📊 Roadmap (Mejoras Futuras)
 
-- [ ] Vista de histórico de logs con gráficos de evolución
-- [ ] Exportación de datos (CSV, JSON) para compartir con médico
-- [ ] Configuración de fecha de inicio del protocolo
+- [x] Vista de histórico de logs con gráficos de evolución
+- [x] Exportación de datos (CSV, JSON) para compartir con médico
+- [x] Configuración de fecha de inicio del protocolo
+- [x] Persistencia del timer de vaciado gástrico
 - [ ] Módulo de medicación/suplementos
 - [ ] Recordatorios programados (ej: cada 4h infusión)
 - [ ] Migración a IndexedDB para datos más grandes
@@ -145,6 +163,8 @@ La app está configurada como Progressive Web App y puede instalarse:
 - [ ] Modo claro/oscuro
 - [ ] Animaciones de transición entre secciones
 - [ ] Análisis de correlación adherencia-síntomas
+- [ ] Gráficos de evolución en el histórico
+- [ ] Importación de datos (para restaurar backups)
 
 ## 🧪 Testing
 

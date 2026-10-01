@@ -80,6 +80,8 @@ El proyecto está configurado como PWA:
 - `digestive-symptoms`: Estado de síntomas diarios
 - `digestive-notes`: Notas libres
 - `digestive-logs`: Array de logs históricos
+- `digestive-protocol-start`: Fecha de inicio del protocolo (YYYY-MM-DD)
+- `digestive-timer-state`: Estado del timer de vaciado gástrico (persistente)
 
 ## 🐛 Debugging
 
