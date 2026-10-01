@@ -26,3 +26,36 @@
     "vite": "^8.3.0"
   }
 }
+
+/*
+ * ============================================================================
+ * DIGESTIVE SPEEDRUN TRACKER - PACKAGE.JSON
+ * ============================================================================
+ *
+ * PROYECTO: MVP clínico para seguimiento de protocolo de recuperación intestinal
+ * OBJETIVO: Tracking de adherencia y síntomas para protocolo SIBO/FODMAPs de 14 días
+ *
+ * DEPENDENCIAS PRINCIPALES:
+ * - react: ^19.2.8 - Framework de UI principal
+ * - react-dom: ^19.2.8 - Renderizado en el DOM
+ * - lucide-react: ^1.49.0 - Biblioteca de iconos ligera y moderna
+ *
+ * DEPENDENCIAS DE DESARROLLO:
+ * - @tailwindcss/postcss: ^4.3.3 - Plugin PostCSS para Tailwind CSS v4
+ * - tailwindcss: ^4.3.3 - Framework de utilidades CSS (última versión)
+ * - vite: ^8.3.0 - Build tool y servidor de desarrollo ultrarrápido
+ * - @vitejs/plugin-react: ^6.1.1 - Plugin de Vite para React
+ * - postcss: ^8.5.28 - Procesador CSS
+ * - autoprefixer: ^10.6.1 - Prefijos automáticos de CSS
+ * - oxlint: ^1.81.0 - Linter ultra rápido (alternativa a ESLint)
+ * - @types/react: ^19.2.18 - TypeScript definitions para React
+ * - @types/react-dom: ^19.2.7 - TypeScript definitions para React DOM
+ *
+ * SCRIPTS:
+ * - dev: Inicia servidor de desarrollo en modo hot-reload
+ * - build: Compila para producción (minificación y optimización)
+ * - lint: Ejecuta oxlint para análisis de código
+ * - preview: Previsualiza el build de producción localmente
+ *
+ * NOTA: Usamos ES modules ("type": "module") para compatibilidad moderna
+ */
