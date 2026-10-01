@@ -9,6 +9,7 @@ import { BristolScale } from './components/BristolScale';
 import { ProtocolSettings } from './components/ProtocolSettings';
 import { HistoryView } from './components/HistoryView';
 import { ProgressBar } from './components/ProgressBar';
+import { ViewTransition } from './components/ViewTransition';
 import { Bell, Calendar, Save, Settings, History as HistoryIcon } from 'lucide-react';
 
 // ============================================================================
@@ -120,7 +121,7 @@ function App() {
   // RENDERIZADO - UI
   // ============================================================================
   return (
-    <div className="min-h-screen p-4 pb-24">
+    <div className="min-h-screen p-4 pb-24 relative">
       {/* Header: Título + contador de días + navegación */}
       <header className="mb-6">
         <div className="flex justify-between items-start mb-2">
@@ -166,7 +167,7 @@ function App() {
       )}
 
       {/* Vista: Dashboard principal */}
-      {currentView === 'dashboard' && (
+      <ViewTransition isActive={currentView === 'dashboard'}>
         <>
           {/* Módulo 1: Timer de vaciado gástrico */}
           <section className="mb-6">
@@ -267,21 +268,21 @@ function App() {
             Guardar Registro Diario
           </button>
         </>
-      )}
+      </ViewTransition>
 
       {/* Vista: Histórico */}
-      {currentView === 'history' && (
+      <ViewTransition isActive={currentView === 'history'}>
         <HistoryView />
-      )}
+      </ViewTransition>
 
       {/* Vista: Configuración */}
-      {currentView === 'settings' && (
+      <ViewTransition isActive={currentView === 'settings'}>
         <ProtocolSettings
           startDate={startDate}
           currentDay={currentDay}
           onDateChange={setStartDate}
         />
-      )}
+      </ViewTransition>
     </div>
   );
 }
