@@ -32,13 +32,21 @@
  * @param {number} max - Valor máximo (default: 10)
  * @param {string} description - Texto explicativo secundario (opcional)
  */
-export function Slider({ label, value, onChange, min = 0, max = 10, description }) {
+export function Slider({ label, value, onChange, min = 0, max = 10, description, reverseColor = false }) {
   // Calcula el color del valor según severidad
   const getColor = (val) => {
     const ratio = val / max;
-    if (ratio <= 0.3) return 'text-dark-success';
-    if (ratio <= 0.6) return 'text-yellow-500';
-    return 'text-dark-alert';
+    if (reverseColor) {
+      // Para ayuno: más horas = mejor (verde), menos horas = peor (rojo)
+      if (ratio >= 0.7) return 'text-dark-success';
+      if (ratio >= 0.4) return 'text-yellow-500';
+      return 'text-dark-alert';
+    } else {
+      // Para síntomas: más valor = peor (rojo), menos valor = mejor (verde)
+      if (ratio <= 0.3) return 'text-dark-success';
+      if (ratio <= 0.6) return 'text-yellow-500';
+      return 'text-dark-alert';
+    }
   };
 
   return (
@@ -65,7 +73,7 @@ export function Slider({ label, value, onChange, min = 0, max = 10, description 
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer touch-manipulation"
         style={{
-          background: `linear-gradient(to right, #10B981 0%, #10B981 ${(value / max) * 100}%, #374151 ${(value / max) * 100}%, #374151 100%)`,
+          background: `linear-gradient(to right, ${reverseColor ? '#EF4444' : '#10B981'} 0%, ${reverseColor ? '#10B981' : '#EF4444'} 100%, #374151 100%)`,
         }}
       />
 

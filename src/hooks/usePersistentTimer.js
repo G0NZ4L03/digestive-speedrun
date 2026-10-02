@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // ============================================================================
 // HOOK: usePersistentTimer
 // ============================================================================
 
 /**
- * Hook personalizado para un timer que persiste en localStorage.
+ * Hook personalizado para un timer que persiste y funciona en background.
  *
  * PROBLEMA QUE RESUELVE:
- * - El timer actual se pierde al recargar la página
- * - Los usuarios pueden cerrar la app accidentalmente
- * - Necesitamos que el timer continúe contando aunque la app se cierre
+ * - El timer se pausa en Safari iOS cuando la app va a background
+ * - setInterval no funciona cuando la app no está en primer plano
+ * - Necesitamos un sistema basado en timestamps para calcular tiempo real
 
  * FUNCIONAMIENTO:
- * 1. Al montar, recupera estado del timer de localStorage
- * 2. Si el timer estaba corriendo, calcula el tiempo transcurrido
- * 3. Sincroniza estado con localStorage en cada cambio
- * 4. Limpia localStorage cuando el timer completa o se resetea
+ * 1. Usa timestamps en lugar de setInterval contando segundos
+ * 2. Al volver a primer plano, calcula tiempo transcurrido real
+ * 3. Usa Page Visibility API para detectar cuando la app vuelve
+ * 4. Corrige el tiempo basándose en el tiempo real transcurrido
 
  * ESTADOS:
  * - timeLeft: Segundos restantes (null si no iniciado)
@@ -25,7 +25,7 @@ import { useState, useEffect } from 'react';
 
  * @param {number} initialTime - Tiempo inicial en segundos
  * @param {function} onComplete - Callback cuando el timer llega a 0
- * @returns {Object} - { timeLeft, isRunning, start, pause, reset }
+ * @returns {Object} - { timeLeft, isRunning, start, pause, resume, reset }
  */
 export function usePersistentTimer(initialTime, onComplete) {
   const [timeLeft, setTimeLeft] = useState(() => {
@@ -70,6 +70,9 @@ export function usePersistentTimer(initialTime, onComplete) {
     }
   });
 
+  const intervalRef = useRef(null);
+  const lastTickRef = useRef(null);
+
   // Guardar estado en localStorage
   const saveState = (newTimeLeft, running) => {
     try {
@@ -89,31 +92,65 @@ export function usePersistentTimer(initialTime, onComplete) {
     }
   };
 
+  // Corregir tiempo cuando la app vuelve a primer plano
+  const handleVisibilityChange = () => {
+    if (!document.hidden && isRunning && lastTickRef.current) {
+      const elapsed = Math.floor((Date.now() - lastTickRef.current) / 1000);
+      setTimeLeft((prev) => {
+        const newTime = Math.max(0, prev - elapsed);
+        if (newTime === 0) {
+          setIsRunning(false);
+          saveState(null, false);
+          onComplete?.();
+          return 0;
+        }
+        return newTime;
+      });
+    }
+  };
+
   // Efecto: maneja el intervalo del timer
   useEffect(() => {
-    let interval;
     if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            saveState(null, false);
-            onComplete?.();
-            return 0;
-          }
-          const newTime = prev - 1;
-          saveState(newTime, true);
-          return newTime;
-        });
-      }, 1000);
+      lastTickRef.current = Date.now();
+      intervalRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - lastTickRef.current) / 1000);
+        if (elapsed >= 1) {
+          setTimeLeft((prev) => {
+            if (prev <= 1) {
+              setIsRunning(false);
+              saveState(null, false);
+              onComplete?.();
+              return 0;
+            }
+            const newTime = prev - elapsed;
+            saveState(newTime, true);
+            lastTickRef.current = Date.now();
+            return newTime;
+          });
+        }
+      }, 100);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, [isRunning, timeLeft, onComplete]);
+
+  // Efecto: detecta cuando la app vuelve a primer plano
+  useEffect(() => {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isRunning, onComplete]);
 
   // Iniciar el timer
   const start = () => {
     setTimeLeft(initialTime);
     setIsRunning(true);
+    lastTickRef.current = Date.now();
     saveState(initialTime, true);
   };
 
@@ -126,6 +163,7 @@ export function usePersistentTimer(initialTime, onComplete) {
   // Reanudar el timer
   const resume = () => {
     setIsRunning(true);
+    lastTickRef.current = Date.now();
     saveState(timeLeft, true);
   };
 
@@ -134,6 +172,7 @@ export function usePersistentTimer(initialTime, onComplete) {
     setTimeLeft(null);
     setIsRunning(false);
     saveState(null, false);
+    lastTickRef.current = null;
   };
 
   return {
@@ -149,12 +188,20 @@ export function usePersistentTimer(initialTime, onComplete) {
 /*
  * RAZÓN DE ESTE HOOK:
  * - Persistencia: El timer sobrevive a refresh y cierre de app
- * - Precisión: Calcula tiempo transcurrido offline
- * - UX: El usuario no pierde su progreso accidentalmente
+ * - Background: Funciona correctamente cuando la app va a background
+ * - Precisión: Usa timestamps para calcular tiempo real transcurrido
+ * - Page Visibility API: Detecta cuando la app vuelve a primer plano
+ * - UX: El usuario no pierde su progreso aunque cambie de app
  *
  * USO EN ESTE PROYECTO:
  * - GastricTimer: Reemplaza la lógica de estado actual
  * - Permite que el usuario cierre la app y vuelva sin perder el timer
+ *
+ * CAMBIOS RECIENTES:
+ * - Añadido Page Visibility API para detectar cambios de visibilidad
+ * - Corrección de tiempo basada en timestamps reales
+ * - Interval más frecuente (100ms) para mayor precisión
+ * - lastTickRef para tracking preciso del tiempo
  *
  * FUTURO: Mejoras posibles:
  * - Añadir múltiples timers simultáneos

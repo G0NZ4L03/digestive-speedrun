@@ -261,8 +261,15 @@ function App() {
           className="w-full mb-4 p-3 bg-dark-alert text-white rounded-xl touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
         >
           <Bell className="w-5 h-5" />
-          Activar Notificaciones
+          Activar alertas del timer
         </button>
+      )}
+      {permission === 'denied' && (
+        <div className="w-full mb-4 p-3 bg-gray-800 text-gray-400 rounded-xl text-sm text-center">
+          <Bell className="w-5 h-5 mx-auto mb-2 opacity-50" />
+          <p>Las alertas están bloqueadas en tu dispositivo</p>
+          <p className="text-xs mt-1 opacity-70">Actívalas en Ajustes del sistema para usarlas</p>
+        </div>
       )}
 
       {/* Vista: Dashboard principal */}
@@ -311,11 +318,12 @@ function App() {
               />
               <Slider
                 label="Horas de ayuno nocturno"
-                description="Objetivo: >12h"
+                description="Objetivo: >12h (más horas = mejor)"
                 value={adherence.fastingHours}
                 onChange={(val) => setAdherence({ ...adherence, fastingHours: val })}
-                min={0}
+                min={6}
                 max={16}
+                reverseColor={true}
               />
             </div>
           </section>
