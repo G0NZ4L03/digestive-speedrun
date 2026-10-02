@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { History, ChevronDown, ChevronUp, Trash2, Download } from 'lucide-react';
+import { History, ChevronDown, ChevronUp, Trash2, Download, Copy } from 'lucide-react';
 import { exportToJSON, exportToCSV, exportToSimpleCSV } from '../utils/exportData';
 
 // ============================================================================
@@ -66,6 +66,70 @@ export function HistoryView() {
     return 'text-dark-alert';
   };
 
+  // Generar prompt para Gemini
+  const generateGeminiPrompt = () => {
+    if (logs.length === 0) {
+      alert('No hay registros para generar reporte');
+      return;
+    }
+
+    // Agrupar logs por día
+    const logsByDay = {};
+    logs.forEach(log => {
+      const date = new Date(log.date).toLocaleDateString('es-ES');
+      if (!logsByDay[date]) {
+        logsByDay[date] = [];
+      }
+      logsByDay[date].push(log);
+    });
+
+    // Generar prompt estructurado
+    let prompt = `=== DIGESTIVE SPEEDRUN TRACKER - REPORTE PARA ANÁLISIS CLÍNICO ===\n\n`;
+    prompt += `Hola, soy un paciente siguiendo un protocolo de 14 días para recuperación intestinal (SIBO/FODMAPs, disbiosis, dolor en nervio frénico).\n\n`;
+    prompt += `A continuación te presento mi registro detallado de adherencia y síntomas. Por favor, analiza los datos y proporciona:\n`;
+    prompt += `1. Correlación entre adherencia al protocolo y mejora de síntomas\n`;
+    prompt += `2. Patrones identificables (horarios, tipos de comida, etc.)\n`;
+    prompt += `3. Recomendaciones específicas basadas en mis datos\n`;
+    prompt += `4. Áreas de mejora en adherencia\n\n`;
+    prompt += `=== REGISTRO DETALLADO ===\n\n`;
+
+    Object.entries(logsByDay).forEach(([date, dayLogs]) => {
+      prompt += `📅 ${date}\n`;
+      prompt += `---\n`;
+      dayLogs.forEach((log, index) => {
+        const mealTypeLabel = log.mealType === 'solid' ? 'Sólida' : log.mealType === 'soft' ? 'Pastosa' : 'Líquida';
+        const time = new Date(log.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        
+        prompt += `🍽️ Registro ${index + 1} (${mealTypeLabel}) - ${time}\n`;
+        prompt += `   Adherencia:\n`;
+        prompt += `   - Arroz fresco: ${log.adherence.freshRice ? '✅' : '❌'}\n`;
+        prompt += `   - Proteína blanda: ${log.adherence.softProtein ? '✅' : '❌'}\n`;
+        prompt += `   - Sin edulcorantes: ${log.adherence.noSweeteners ? '✅' : '❌'}\n`;
+        prompt += `   - Sin frío: ${log.adherence.noColdFood ? '✅' : '❌'}\n`;
+        prompt += `   - Ayuno: ${log.adherence.fastingHours}h\n`;
+        prompt += `   Síntomas:\n`;
+        prompt += `   - Dolor frénico: ${log.symptoms.phrenicPain}/10\n`;
+        prompt += `   - Distensión: ${log.symptoms.bloating}/10\n`;
+        prompt += `   - Reflujo: ${log.symptoms.reflux}/10\n`;
+        prompt += `   - Bristol: Tipo ${log.symptoms.bristolScale}\n`;
+        if (log.notes) {
+          prompt += `   Notas: ${log.notes}\n`;
+        }
+        prompt += `\n`;
+      });
+    });
+
+    prompt += `=== FIN DEL REGISTRO ===\n\n`;
+    prompt += `Por favor, proporciona tu análisis en un formato claro y estructurado.`;
+
+    // Copiar al portapapeles
+    navigator.clipboard.writeText(prompt).then(() => {
+      alert('✅ Prompt copiado al portapapeles. Ahora puedes pegarlo en Gemini.');
+    }).catch(() => {
+      alert('❌ Error al copiar al portapapeles');
+    });
+  };
+
   // Borrar un log específico
   const deleteLog = (index) => {
     if (confirm('¿Estás seguro de borrar este log?')) {
@@ -113,30 +177,39 @@ export function HistoryView() {
         )}
       </div>
 
-      {/* Botones de exportación */}
+      {/* Botones de exportación y análisis */}
       {logs.length > 0 && (
-        <div className="flex gap-2 mb-4">
+        <div className="space-y-2 mb-4">
           <button
-            onClick={() => exportToCSV()}
-            className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+            onClick={generateGeminiPrompt}
+            className="w-full py-3 px-3 bg-dark-success text-white text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
           >
-            <Download className="w-4 h-4" />
-            CSV
+            <Copy className="w-4 h-4" />
+            Copiar Reporte para Gemini
           </button>
-          <button
-            onClick={() => exportToSimpleCSV()}
-            className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            CSV Simple
-          </button>
-          <button
-            onClick={() => exportToJSON()}
-            className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            JSON
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => exportToCSV()}
+              className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              onClick={() => exportToSimpleCSV()}
+              className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              CSV Simple
+            </button>
+            <button
+              onClick={() => exportToJSON()}
+              className="flex-1 py-2 px-3 bg-gray-800 text-gray-300 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              JSON
+            </button>
+          </div>
         </div>
       )}
 
@@ -159,6 +232,9 @@ export function HistoryView() {
                   {formatDate(log.date)}
                 </p>
                 <div className="flex items-center gap-3 mt-1">
+                  <span className="text-sm text-gray-400">
+                    {log.mealType === 'solid' ? '🍽️ Sólida' : log.mealType === 'soft' ? '🥣 Pastosa' : '🫖 Líquida'}
+                  </span>
                   <span className={`text-sm ${adherence >= 75 ? 'text-dark-success' : adherence >= 50 ? 'text-yellow-500' : 'text-dark-alert'}`}>
                     Adherencia: {adherence}%
                   </span>

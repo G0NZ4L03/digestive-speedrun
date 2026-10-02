@@ -10,7 +10,9 @@ import { ProtocolSettings } from './components/ProtocolSettings';
 import { HistoryView } from './components/HistoryView';
 import { ProgressBar } from './components/ProgressBar';
 import { ViewTransition } from './components/ViewTransition';
-import { Bell, Calendar, Save, Settings, History as HistoryIcon } from 'lucide-react';
+import { Toast } from './components/Toast';
+import { MealTypeSelector } from './components/MealTypeSelector';
+import { Bell, Calendar, Save, Settings, History as HistoryIcon, Copy } from 'lucide-react';
 
 // ============================================================================
 // APP.JSX - COMPONENTE PRINCIPAL
@@ -82,6 +84,12 @@ function App() {
 
   // Estado para la vista actual (dashboard vs histórico vs settings)
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'history' | 'settings'
+  
+  // Estado para notificaciones toast (feedback visual)
+  const [toast, setToast] = useState(null); // { message, type } | null
+  
+  // Estado para tipo de comida del registro actual
+  const [mealType, setMealType] = useState('solid'); // 'solid' | 'soft' | 'liquid'
 
   // ============================================================================
   // HANDLERS - LÓGICA DE NEGOCIO
@@ -97,13 +105,27 @@ function App() {
 
   // Solicita permiso de notificaciones al usuario
   const requestNotificationPermission = async () => {
-    await requestPermission();
+    const result = await requestPermission();
+    if (result === 'granted') {
+      setToast({ message: '✅ Notificaciones activadas', type: 'success' });
+    } else if (result === 'denied') {
+      setToast({ message: '❌ Notificaciones bloqueadas', type: 'error' });
+    }
+    // Auto-hide toast después de 3 segundos
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Muestra un toast temporal
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   };
 
   // Guarda el log diario en localStorage
   const saveDailyLog = () => {
     const log = {
       date: new Date().toISOString(), // Timestamp ISO para ordenamiento
+      mealType, // Tipo de comida (solid/soft/liquid)
       adherence,
       symptoms,
       notes,
@@ -111,9 +133,76 @@ function App() {
     // Lee logs existentes, añade el nuevo al principio (más reciente primero)
     const existingLogs = JSON.parse(localStorage.getItem('digestive-logs') || '[]');
     localStorage.setItem('digestive-logs', JSON.stringify([log, ...existingLogs]));
-    // Confirma con notificación
+    // Confirma con notificación y toast
     showNotification('Registro Guardado', {
       body: 'Tu log diario ha sido guardado correctamente.',
+    });
+    showToast('✅ Registro guardado correctamente', 'success');
+  };
+
+  // Genera prompt formateado para Gemini
+  const generateGeminiPrompt = () => {
+    const logs = JSON.parse(localStorage.getItem('digestive-logs') || '[]');
+    
+    if (logs.length === 0) {
+      showToast('❌ No hay registros para generar reporte', 'error');
+      return;
+    }
+
+    // Agrupar logs por día
+    const logsByDay = {};
+    logs.forEach(log => {
+      const date = new Date(log.date).toLocaleDateString('es-ES');
+      if (!logsByDay[date]) {
+        logsByDay[date] = [];
+      }
+      logsByDay[date].push(log);
+    });
+
+    // Generar prompt estructurado
+    let prompt = `=== DIGESTIVE SPEEDRUN TRACKER - REPORTE PARA ANÁLISIS CLÍNICO ===\n\n`;
+    prompt += `Hola, soy un paciente siguiendo un protocolo de 14 días para recuperación intestinal (SIBO/FODMAPs, disbiosis, dolor en nervio frénico).\n\n`;
+    prompt += `A continuación te presento mi registro detallado de adherencia y síntomas. Por favor, analiza los datos y proporciona:\n`;
+    prompt += `1. Correlación entre adherencia al protocolo y mejora de síntomas\n`;
+    prompt += `2. Patrones identificables (horarios, tipos de comida, etc.)\n`;
+    prompt += `3. Recomendaciones específicas basadas en mis datos\n`;
+    prompt += `4. Áreas de mejora en adherencia\n\n`;
+    prompt += `=== REGISTRO DETALLADO ===\n\n`;
+
+    Object.entries(logsByDay).forEach(([date, dayLogs]) => {
+      prompt += `📅 ${date}\n`;
+      prompt += `---\n`;
+      dayLogs.forEach((log, index) => {
+        const mealTypeLabel = log.mealType === 'solid' ? 'Sólida' : log.mealType === 'soft' ? 'Pastosa' : 'Líquida';
+        const time = new Date(log.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        
+        prompt += `🍽️ Registro ${index + 1} (${mealTypeLabel}) - ${time}\n`;
+        prompt += `   Adherencia:\n`;
+        prompt += `   - Arroz fresco: ${log.adherence.freshRice ? '✅' : '❌'}\n`;
+        prompt += `   - Proteína blanda: ${log.adherence.softProtein ? '✅' : '❌'}\n`;
+        prompt += `   - Sin edulcorantes: ${log.adherence.noSweeteners ? '✅' : '❌'}\n`;
+        prompt += `   - Sin frío: ${log.adherence.noColdFood ? '✅' : '❌'}\n`;
+        prompt += `   - Ayuno: ${log.adherence.fastingHours}h\n`;
+        prompt += `   Síntomas:\n`;
+        prompt += `   - Dolor frénico: ${log.symptoms.phrenicPain}/10\n`;
+        prompt += `   - Distensión: ${log.symptoms.bloating}/10\n`;
+        prompt += `   - Reflujo: ${log.symptoms.reflux}/10\n`;
+        prompt += `   - Bristol: Tipo ${log.symptoms.bristolScale}\n`;
+        if (log.notes) {
+          prompt += `   Notas: ${log.notes}\n`;
+        }
+        prompt += `\n`;
+      });
+    });
+
+    prompt += `=== FIN DEL REGISTRO ===\n\n`;
+    prompt += `Por favor, proporciona tu análisis en un formato claro y estructurado.`;
+
+    // Copiar al portapapeles
+    navigator.clipboard.writeText(prompt).then(() => {
+      showToast('✅ Prompt copiado al portapapeles', 'success');
+    }).catch(() => {
+      showToast('❌ Error al copiar', 'error');
     });
   };
 
@@ -125,7 +214,15 @@ function App() {
       {/* Header: Título + contador de días + navegación */}
       <header className="mb-6">
         <div className="flex justify-between items-start mb-2">
-          <div>
+          <div className="flex-1">
+            {currentView !== 'dashboard' && (
+              <button
+                onClick={() => setCurrentView('dashboard')}
+                className="text-sm text-gray-400 hover:text-gray-300 mb-2 flex items-center gap-1 touch-manipulation"
+              >
+                ← Volver al dashboard
+              </button>
+            )}
             <h1 className="text-2xl font-bold text-dark-success mb-1">
               Digestive SpeedRun
             </h1>
@@ -140,6 +237,7 @@ function App() {
               className={`p-2 rounded-lg touch-manipulation ${
                 currentView === 'history' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400'
               }`}
+              aria-label="Ver histórico"
             >
               <HistoryIcon className="w-5 h-5" />
             </button>
@@ -148,6 +246,7 @@ function App() {
               className={`p-2 rounded-lg touch-manipulation ${
                 currentView === 'settings' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400'
               }`}
+              aria-label="Configuración"
             >
               <Settings className="w-5 h-5" />
             </button>
@@ -172,6 +271,11 @@ function App() {
           {/* Módulo 1: Timer de vaciado gástrico */}
           <section className="mb-6">
             <GastricTimer onTimerComplete={handleTimerComplete} />
+          </section>
+
+          {/* Módulo 0: Tipo de comida */}
+          <section className="mb-6">
+            <MealTypeSelector value={mealType} onChange={setMealType} />
           </section>
 
           {/* Módulo 2: Adherencia diaria */}
@@ -283,6 +387,11 @@ function App() {
           onDateChange={setStartDate}
         />
       </ViewTransition>
+
+      {/* Toast notifications */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} />
+      )}
     </div>
   );
 }

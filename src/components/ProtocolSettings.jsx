@@ -42,7 +42,7 @@ export function ProtocolSettings({ startDate, currentDay, onDateChange }) {
             type="date"
             value={startDate}
             onChange={(e) => onDateChange(e.target.value)}
-            className="w-full p-3 bg-gray-800 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-dark-success"
+            className="w-full p-3 bg-gray-800 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-dark-success text-base"
           />
         </div>
 
