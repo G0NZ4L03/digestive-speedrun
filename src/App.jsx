@@ -15,6 +15,7 @@ import { ViewTransition } from './components/ViewTransition';
 import { Toast } from './components/Toast';
 import { MealTypeSelector } from './components/MealTypeSelector';
 import { FieldConfig } from './components/FieldConfig';
+import { ResetProtocol } from './components/ResetProtocol';
 import { Bell, Calendar, Save, Settings, History as HistoryIcon, Copy, Sliders, TrendingUp, Clock } from 'lucide-react';
 
 // ============================================================================
@@ -154,6 +155,28 @@ function App() {
       body: 'Tu log diario ha sido guardado correctamente.',
     });
     showToast('✅ Registro guardado correctamente', 'success');
+  };
+
+  // Reset completo del protocolo
+  const resetProtocol = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        // Borrar todos los datos
+        localStorage.removeItem('digestive-logs');
+        localStorage.removeItem('digestive-adherence');
+        localStorage.removeItem('digestive-symptoms');
+        localStorage.removeItem('digestive-notes');
+        localStorage.removeItem('digestive-protocol-start');
+        localStorage.removeItem('digestive-timer-state');
+        localStorage.removeItem('digestive-field-config');
+        
+        // Recargar la página para limpiar estado de React
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error resetting protocol:', error);
+      showToast('❌ Error al resetear protocolo', 'error');
+    }
   };
 
   // Genera prompt formateado para Gemini
@@ -445,6 +468,10 @@ function App() {
             />
           </div>
         </ProtocolSettings>
+        
+        <div className="mt-6">
+          <ResetProtocol onReset={resetProtocol} />
+        </div>
       </ViewTransition>
 
       {/* Toast notifications */}
