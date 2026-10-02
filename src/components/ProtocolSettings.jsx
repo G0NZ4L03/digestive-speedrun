@@ -24,37 +24,42 @@ import { Settings } from 'lucide-react';
  * @param {string} startDate - Fecha de inicio actual (YYYY-MM-DD)
  * @param {number} currentDay - Día actual del protocolo
  * @param {function} onDateChange - Callback cuando cambia la fecha
+ * @param {React.ReactNode} children - Contenido adicional (ej: FieldConfig)
  */
-export function ProtocolSettings({ startDate, currentDay, onDateChange }) {
+export function ProtocolSettings({ startDate, currentDay, onDateChange, children }) {
   return (
-    <div className="p-4 bg-dark-surface rounded-xl">
-      <div className="flex items-center gap-2 mb-4">
-        <Settings className="w-5 h-5 text-gray-400" />
-        <h3 className="font-medium text-gray-100">Configuración del Protocolo</h3>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm text-gray-400 mb-2">
-            Fecha de inicio
-          </label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => onDateChange(e.target.value)}
-            className="w-full p-3 bg-gray-800 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-dark-success text-base"
-          />
+    <div className="space-y-4">
+      <div className="p-4 bg-dark-surface rounded-xl">
+        <div className="flex items-center gap-2 mb-4">
+          <Settings className="w-5 h-5 text-gray-400" />
+          <h3 className="font-medium text-gray-100">Configuración del Protocolo</h3>
         </div>
 
-        <div className="p-3 bg-gray-800 rounded-lg">
-          <p className="text-sm text-gray-400">
-            Día actual del protocolo
-          </p>
-          <p className="text-2xl font-bold text-dark-success mt-1">
-            {currentDay} de 14
-          </p>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">
+              Fecha de inicio
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => onDateChange(e.target.value)}
+              className="w-full p-3 bg-gray-800 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-dark-success text-base"
+            />
+          </div>
+
+          <div className="p-3 bg-gray-800 rounded-lg">
+            <p className="text-sm text-gray-400">
+              Día actual del protocolo
+            </p>
+            <p className="text-2xl font-bold text-dark-success mt-1">
+              {currentDay} de 14
+            </p>
+          </div>
         </div>
       </div>
+
+      {children}
     </div>
   );
 }
@@ -64,6 +69,7 @@ export function ProtocolSettings({ startDate, currentDay, onDateChange }) {
  * - Input type="date": Usamos el picker nativo del móvil (mejor UX)
  * - Visualización del día actual: Feedback inmediato del cambio
  * - Estilo consistente: Usa los mismos colores que el resto de la app
+ * - Children prop: Permite añadir FieldConfig dentro del mismo contenedor
  *
  * FUTURO: Mejoras posibles:
  * - Añadir validación (no permitir fechas futuras)

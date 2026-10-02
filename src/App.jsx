@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useNotifications } from './hooks/useNotifications';
 import { useProtocolDate } from './hooks/useProtocolDate';
+import { useFieldConfig } from './hooks/useFieldConfig';
 import { Toggle } from './components/Toggle';
 import { Slider } from './components/Slider';
 import { GastricTimer } from './components/GastricTimer';
@@ -12,7 +13,8 @@ import { ProgressBar } from './components/ProgressBar';
 import { ViewTransition } from './components/ViewTransition';
 import { Toast } from './components/Toast';
 import { MealTypeSelector } from './components/MealTypeSelector';
-import { Bell, Calendar, Save, Settings, History as HistoryIcon, Copy } from 'lucide-react';
+import { FieldConfig } from './components/FieldConfig';
+import { Bell, Calendar, Save, Settings, History as HistoryIcon, Copy, Sliders } from 'lucide-react';
 
 // ============================================================================
 // APP.JSX - COMPONENTE PRINCIPAL
@@ -81,6 +83,9 @@ function App() {
 
   // Hook para fecha de inicio del protocolo
   const { startDate, currentDay, setStartDate } = useProtocolDate();
+
+  // Hook para configuración de campos
+  const { config, toggleField, getActiveFields, isFieldActive, AVAILABLE_FIELDS } = useFieldConfig();
 
   // Estado para la vista actual (dashboard vs histórico vs settings)
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'history' | 'settings'
@@ -393,7 +398,22 @@ function App() {
           startDate={startDate}
           currentDay={currentDay}
           onDateChange={setStartDate}
-        />
+        >
+          <div className="p-4 bg-dark-surface rounded-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <Sliders className="w-5 h-5 text-gray-400" />
+              <h3 className="font-medium text-gray-100">Configuración de Campos</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              Personaliza qué datos quieres trackear. Activa solo los campos que necesitas.
+            </p>
+            <FieldConfig
+              config={config}
+              onToggle={toggleField}
+              availableFields={AVAILABLE_FIELDS}
+            />
+          </div>
+        </ProtocolSettings>
       </ViewTransition>
 
       {/* Toast notifications */}

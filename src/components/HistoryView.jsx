@@ -67,15 +67,25 @@ export function HistoryView() {
   };
 
   // Generar prompt para Gemini
-  const generateGeminiPrompt = () => {
-    if (logs.length === 0) {
-      alert('No hay registros para generar reporte');
+  const generateGeminiPrompt = (fullHistory = false) => {
+    let logsToUse = logs;
+    
+    if (!fullHistory) {
+      // Solo logs de hoy
+      const today = new Date().toLocaleDateString('es-ES');
+      logsToUse = logs.filter(log => 
+        new Date(log.date).toLocaleDateString('es-ES') === today
+      );
+    }
+    
+    if (logsToUse.length === 0) {
+      alert(fullHistory ? 'No hay registros para generar reporte completo' : 'No hay registros de hoy para generar reporte');
       return;
     }
 
     // Agrupar logs por día
     const logsByDay = {};
-    logs.forEach(log => {
+    logsToUse.forEach(log => {
       const date = new Date(log.date).toLocaleDateString('es-ES');
       if (!logsByDay[date]) {
         logsByDay[date] = [];
@@ -86,7 +96,7 @@ export function HistoryView() {
     // Generar prompt estructurado
     let prompt = `=== DIGESTIVE SPEEDRUN TRACKER - REPORTE PARA ANÁLISIS CLÍNICO ===\n\n`;
     prompt += `Hola, soy un paciente siguiendo un protocolo de 14 días para recuperación intestinal (SIBO/FODMAPs, disbiosis, dolor en nervio frénico).\n\n`;
-    prompt += `A continuación te presento mi registro detallado de adherencia y síntomas. Por favor, analiza los datos y proporciona:\n`;
+    prompt += `A continuación te presento mi registro detallado de adherencia y síntomas${fullHistory ? ' desde el día 1 hasta hoy' : ' de hoy'}. Por favor, analiza los datos y proporciona:\n`;
     prompt += `1. Correlación entre adherencia al protocolo y mejora de síntomas\n`;
     prompt += `2. Patrones identificables (horarios, tipos de comida, etc.)\n`;
     prompt += `3. Recomendaciones específicas basadas en mis datos\n`;
@@ -124,7 +134,7 @@ export function HistoryView() {
 
     // Copiar al portapapeles
     navigator.clipboard.writeText(prompt).then(() => {
-      alert('✅ Prompt copiado al portapapeles. Ahora puedes pegarlo en Gemini.');
+      alert(fullHistory ? '✅ Reporte completo copiado al portapapeles' : '✅ Reporte de hoy copiado al portapapeles');
     }).catch(() => {
       alert('❌ Error al copiar al portapapeles');
     });
@@ -181,11 +191,18 @@ export function HistoryView() {
       {logs.length > 0 && (
         <div className="space-y-2 mb-4">
           <button
-            onClick={generateGeminiPrompt}
+            onClick={() => generateGeminiPrompt(false)}
             className="w-full py-3 px-3 bg-dark-success text-white text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
           >
             <Copy className="w-4 h-4" />
-            Copiar Reporte para Gemini
+            Copiar Reporte de Hoy
+          </button>
+          <button
+            onClick={() => generateGeminiPrompt(true)}
+            className="w-full py-3 px-3 bg-blue-600 text-white text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          >
+            <Copy className="w-4 h-4" />
+            Copiar Reporte Completo (Día 1 hasta hoy)
           </button>
           <div className="flex gap-2">
             <button
