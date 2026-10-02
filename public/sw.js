@@ -23,7 +23,7 @@
  */
 
 const CACHE_NAME = 'digestive-sr-v1';
-const urlsToCache = ['/'];
+const urlsToCache = ['./'];
 
 // Evento install: Pre-cachea recursos críticos
 self.addEventListener('install', (event) => {
