@@ -3,6 +3,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useNotifications } from './hooks/useNotifications';
 import { useProtocolDate } from './hooks/useProtocolDate';
 import { useFieldConfig } from './hooks/useFieldConfig';
+import { useDailySummary } from './hooks/useDailySummary';
 import { Toggle } from './components/Toggle';
 import { Slider } from './components/Slider';
 import { GastricTimer } from './components/GastricTimer';
@@ -14,7 +15,7 @@ import { ViewTransition } from './components/ViewTransition';
 import { Toast } from './components/Toast';
 import { MealTypeSelector } from './components/MealTypeSelector';
 import { FieldConfig } from './components/FieldConfig';
-import { Bell, Calendar, Save, Settings, History as HistoryIcon, Copy, Sliders } from 'lucide-react';
+import { Bell, Calendar, Save, Settings, History as HistoryIcon, Copy, Sliders, TrendingUp, Clock } from 'lucide-react';
 
 // ============================================================================
 // APP.JSX - COMPONENTE PRINCIPAL
@@ -87,6 +88,9 @@ function App() {
   // Hook para configuración de campos
   const { config, toggleField, getActiveFields, isFieldActive, AVAILABLE_FIELDS } = useFieldConfig();
 
+  // Hook para summary del día
+  const { adherence: dailyAdherence, avgPain, timeAgo, hasLogsToday, logCount } = useDailySummary();
+
   // Estado para la vista actual (dashboard vs histórico vs settings)
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'history' | 'settings'
   
@@ -128,6 +132,13 @@ function App() {
 
   // Guarda el log diario en localStorage
   const saveDailyLog = () => {
+    // Validación básica: al menos un campo de adherencia rellenado
+    const hasAdherence = Object.values(adherence).some(v => v !== false && v !== 0);
+    if (!hasAdherence) {
+      showToast('⚠️ Rellena al menos un campo de adherencia', 'error');
+      return;
+    }
+
     const log = {
       date: new Date().toISOString(), // Timestamp ISO para ordenamiento
       mealType, // Tipo de comida (solid/soft/liquid)
@@ -235,6 +246,26 @@ function App() {
               Día {currentDay} de 14
             </p>
             <ProgressBar currentDay={currentDay} totalDays={14} />
+            {hasLogsToday && (
+              <div className="mt-3 p-3 bg-gray-800 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-400">Resumen de hoy</span>
+                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {timeAgo}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-dark-success" />
+                    <span className="text-sm text-gray-300">Adherencia: {dailyAdherence}%</span>
+                  </div>
+                  <span className="text-sm text-gray-400">
+                    {logCount} registro{logCount !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             <button
