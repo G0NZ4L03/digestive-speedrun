@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { History, ChevronDown, ChevronUp, Trash2, Download, Copy } from 'lucide-react';
 import { exportToJSON, exportToCSV, exportToSimpleCSV } from '../utils/exportData';
 
@@ -30,7 +30,7 @@ export function HistoryView() {
   const [expandedLog, setExpandedLog] = useState(null);
 
   // Leer logs de localStorage
-  const logs = (() => {
+  const readLogs = () => {
     if (typeof window === 'undefined') return [];
     try {
       return JSON.parse(localStorage.getItem('digestive-logs') || '[]');
@@ -38,7 +38,22 @@ export function HistoryView() {
       console.error('Error reading logs:', error);
       return [];
     }
-  })();
+  };
+
+  const [logs, setLogs] = useState(readLogs);
+
+  // Sincronizar logs cuando cambian en la pestaña actual o en otras pestañas
+  useEffect(() => {
+    const handleUpdate = () => {
+      setLogs(readLogs());
+    };
+    window.addEventListener('digestive-logs-updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('digestive-logs-updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   // Calcular porcentaje de adherencia para un log
   const calculateAdherence = (adherence) => {
@@ -145,8 +160,8 @@ export function HistoryView() {
     if (confirm('¿Estás seguro de borrar este log?')) {
       const newLogs = logs.filter((_, i) => i !== index);
       localStorage.setItem('digestive-logs', JSON.stringify(newLogs));
-      // Forzar re-render
-      window.location.reload();
+      setLogs(newLogs);
+      window.dispatchEvent(new Event('digestive-logs-updated'));
     }
   };
 
@@ -154,7 +169,8 @@ export function HistoryView() {
   const deleteAllLogs = () => {
     if (confirm('¿Estás seguro de borrar TODOS los logs? Esta acción no se puede deshacer.')) {
       localStorage.setItem('digestive-logs', '[]');
-      window.location.reload();
+      setLogs([]);
+      window.dispatchEvent(new Event('digestive-logs-updated'));
     }
   };
 

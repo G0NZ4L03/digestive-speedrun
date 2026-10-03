@@ -106,7 +106,11 @@ export function useDailySummary() {
     };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('digestive-logs-updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('digestive-logs-updated', handleStorageChange);
+    };
   }, []);
 
   // Formatear tiempo transcurrido

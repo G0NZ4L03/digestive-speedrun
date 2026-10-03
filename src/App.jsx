@@ -150,6 +150,8 @@ function App() {
     // Lee logs existentes, añade el nuevo al principio (más reciente primero)
     const existingLogs = JSON.parse(localStorage.getItem('digestive-logs') || '[]');
     localStorage.setItem('digestive-logs', JSON.stringify([log, ...existingLogs]));
+    // Notifica a los observadores (useDailySummary, HistoryView)
+    window.dispatchEvent(new Event('digestive-logs-updated'));
     // Confirma con notificación y toast
     showNotification('Registro Guardado', {
       body: 'Tu log diario ha sido guardado correctamente.',
@@ -157,21 +159,24 @@ function App() {
     showToast('✅ Registro guardado correctamente', 'success');
   };
 
-  // Reset completo del protocolo
+  // Reset completo del protocolo sin recarga forzada para preservar timers en curso
   const resetProtocol = () => {
     try {
       if (typeof window !== 'undefined') {
-        // Borrar todos los datos
+        // Borrar datos almacenados (preservando el timer en curso)
         localStorage.removeItem('digestive-logs');
-        localStorage.removeItem('digestive-adherence');
-        localStorage.removeItem('digestive-symptoms');
-        localStorage.removeItem('digestive-notes');
-        localStorage.removeItem('digestive-protocol-start');
-        localStorage.removeItem('digestive-timer-state');
         localStorage.removeItem('digestive-field-config');
-        
-        // Recargar la página para limpiar estado de React
-        window.location.reload();
+
+        // Actualizar estados reactivos a sus valores iniciales
+        setAdherence(initialAdherence);
+        setSymptoms(initialSymptoms);
+        setNotes('');
+        setStartDate(new Date().toISOString().split('T')[0]);
+
+        // Notificar a observadores que los logs fueron limpiados
+        window.dispatchEvent(new Event('digestive-logs-updated'));
+
+        showToast('✅ Protocolo reseteado correctamente', 'success');
       }
     } catch (error) {
       console.error('Error resetting protocol:', error);
