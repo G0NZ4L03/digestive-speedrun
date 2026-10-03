@@ -121,20 +121,20 @@ npm run generate-icons
 - **Timer de vaciado gástrico**: Cuenta atrás de 45 minutos (`GastricTimer` + `usePersistentTimer`), resistente al cierre de app o cambio de pestaña gracias a Page Visibility API y cálculo diferencial por timestamps (`lastTick`).
 - **Módulo de Adherencia y Síntomas**: Registro completo con componentes táctiles (`Toggle`, `Slider`, `BristolScale`) y selector de consistencia de ingesta (`MealTypeSelector`).
 - **Persistencia básica**: Guardado local reactivo de estado actual (`digestive-adherence`, `digestive-symptoms`, `digestive-notes`) y de registros acumulados (`digestive-logs`).
-- **Histórico de logs**: Listado cronológico en `HistoryView` con visualización expandible, badges de severidad por colores y eliminación individual o colectiva.
+- **Histórico de logs**: Listado cronológico en `HistoryView` con visualización expandible, badges de severidad por colores y eliminación individual o colectiva. La lista es ahora **completamente reactiva** (sin recarga de página).
 - **Exportación de datos**: Descarga directa en JSON, CSV completo y CSV resumido (con cabecera UTF-8 BOM para compatibilidad con Microsoft Excel).
 - **Generador de prompts para LLM**: Función en `HistoryView` que formatea el historial o el día actual en Markdown estructurado y lo copia al portapapeles para análisis en Gemini.
-- **PWA base**: Manifiesto e instalación básica con Service Worker funcional para caché inicial.
-- **Reset de protocolo**: Purgado completo de datos con doble confirmación de seguridad.
+- **PWA con rutas correctas para GitHub Pages**: `main.jsx` usa `import.meta.env.BASE_URL` para registrar el SW; `index.html` usa `%BASE_URL%` para el icono y el manifest; `manifest.json` usa `./` en `start_url`, `scope` e iconos. El build de Vite resuelve todo correctamente bajo `/digestive-speedrun/`.
+- **Reset de protocolo**: Purgado completo de datos con doble confirmación de seguridad y **sin recarga forzada** — preserva el temporizador gástrico en curso.
+- **Sincronización reactiva de logs**: Bus de evento personalizado `digestive-logs-updated` que propaga cambios en `localStorage` a `useDailySummary` e `HistoryView` dentro de la misma pestaña sin depender de `window.onstorage`.
 
 ---
 
 ## 6. Qué está a medias o incompleto
 
 - **Desconexión de `useFieldConfig` en el Dashboard**: Aunque existe `FieldConfig.jsx` y `useFieldConfig.js` con soporte para campos avanzados (`supplements`, `energy`, `sleep`, `stress`, `mealTime`, `mealLocation`), en `App.jsx` los campos del dashboard están codificados fijos en JSX y no utilizan `isFieldActive` ni `getActiveFields`.
-- **Código muerto / duplicado de `generateGeminiPrompt`**: Existe una implementación completa de `generateGeminiPrompt` en `App.jsx` (líneas 183-246) que nunca se ejecuta ni se vincula a ningún botón; la que se utiliza realmente es la de `HistoryView.jsx`.
-- **Reactividad rota en `useDailySummary`**: El hook escucha únicamente el evento `window.onstorage`, el cual según la especificación web **solo se dispara en otras pestañas**. Al guardar un registro diario en la pestaña actual, el contador de logs y porcentaje de adherencia en el header no se actualizan hasta refrescar manualmente.
-- **Service Worker incompleto**: `public/sw.js` solo tiene en caché `['/']`. No realiza precacheo de los bundles `assets/*.js` o `assets/*.css`, ni implementa el evento `activate` para limpiar versiones antiguas de caché (`digestive-sr-v1`).
+- **Código muerto / duplicado de `generateGeminiPrompt`**: Existe una implementación completa de `generateGeminiPrompt` en `App.jsx` que nunca se ejecuta ni se vincula a ningún botón; la que se utiliza realmente es la de `HistoryView.jsx`.
+- **Service Worker incompleto**: `public/sw.js` cachea `['./']` (corregido de `['/']`). No realiza precacheo de los bundles `assets/*.js` o `assets/*.css`, ni implementa el evento `activate` para limpiar versiones antiguas de caché (`digestive-sr-v1`).
 - **Inconsistencia en exportación CSV**: `exportData.js` no incluye la columna `mealType` (sólida/pastosa/líquida) en el CSV a pesar de que se captura y almacena en cada registro.
 - **Navegación sin enrutador**: La alternancia de vistas se gestiona mediante un estado local `currentView` sin URLs ni soporte para el botón de retroceso nativo del navegador móvil.
 - **Roadmap clínico pendiente (especificado en README.md)**:
@@ -142,42 +142,53 @@ npm run generate-icons
   - Recordatorios periódicos programados (ej. infusiones cada 4 horas).
   - Gráficas visuales de evolución temporal de síntomas.
   - Importador de datos (para restaurar backups JSON).
+  - Edición de registros guardados (para corregir errores sin borrar).
+  - Filtros en histórico (por tipo de comida, por rango de fechas).
 
 ---
 
 ## 7. Bugs y riesgos detectados
 
-- **Incompatibilidad de rutas absolutas con `base: '/digestive-speedrun/'`**:
-  - En `vite.config.js` se define `base: '/digestive-speedrun/'` para GitHub Pages. Sin embargo:
-    - En `main.jsx`: `navigator.serviceWorker.register('/sw.js')` busca en la raíz del dominio (`/sw.js`), provocando error 404 en GitHub Pages.
-    - En `index.html`: `<link rel="manifest" href="/manifest.json" />` y `<link rel="icon" ... href="/icon.svg" />` están con ruta absoluta a la raíz.
-    - En `public/manifest.json`: `"start_url": "/"` y las rutas de iconos no contemplan el subdirectorio.
+- ~~**Incompatibilidad de rutas absolutas con `base: '/digestive-speedrun/'`**~~ ✅ **RESUELTO** (commit `f80192e`):
+  - `main.jsx` usa `import.meta.env.BASE_URL` para registrar el SW.
+  - `index.html` usa `%BASE_URL%icon.svg` y `%BASE_URL%manifest.json`.
+  - `manifest.json` usa `"./"` en `start_url` y `scope`; iconos con rutas relativas.
+  - `sw.js` usa `['./']` en `urlsToCache`.
+- ~~**Refresco forzado destructivo con `window.location.reload()`**~~ ✅ **RESUELTO** (commit `521ea6f`):
+  - `deleteLog`, `deleteAllLogs` en `HistoryView.jsx`: actualizan estado local + dispatch de `digestive-logs-updated`.
+  - `resetProtocol` en `App.jsx`: reset reactivo de `adherence`, `symptoms`, `notes`, `startDate` sin recarga. Preserva el temporizador gástrico.
+- ~~**Reactividad rota en `useDailySummary`**~~ ✅ **RESUELTO** (commit `521ea6f`):
+  - `useDailySummary.js` ahora escucha `digestive-logs-updated` además de `storage`.
+  - `HistoryView.jsx` tiene `logs` como estado reactivo que se actualiza con el mismo evento.
+  - `saveDailyLog` en `App.jsx` dispara `digestive-logs-updated` tras escribir en localStorage.
 - **Fallo de `new Notification()` en navegadores móviles (iOS PWA / Chrome Android)**:
   - En `useNotifications.js`, instanciar `new Notification()` en el contexto de ventana suele fallar o arrojar excepción (`TypeError: Illegal constructor`) en navegadores móviles donde se exige `ServiceWorkerRegistration.showNotification()`.
 - **Cálculo defectuoso de fechas en `useProtocolDate`**:
   - Utiliza `Math.abs(now - start)`. Si el usuario ingresa por error una fecha futura, el cálculo arroja días positivos en lugar de bloquearse o indicar día 0.
-  - Comparar `new Date("YYYY-MM-DD")` (interpretado en UTC) contra `new Date()` (hora local) genera discrepancias de un día en función de la zona horaria del usuario.
-- **Refresco forzado destructivo con `window.location.reload()`**:
-  - Tanto `deleteLog` y `deleteAllLogs` en `HistoryView` como `resetProtocol` fuerzan una recarga completa de la ventana para sincronizarse con `localStorage`, reiniciando cualquier temporizador o estado volátil en curso.
+  - Comparar `new Date("YYYY-MM-DD")` (interpretado en UTC) contra `new Date()` (hora local) puede generar discrepancias de ±1 día según zona horaria.
 - **Riesgo crítico de pérdida de datos por dependencia exclusiva de `localStorage`**:
   - Si el usuario borra datos del navegador o el sistema operativo móvil purga almacenamiento por falta de espacio (comportamiento documentado en WebKit/iOS), se pierde todo el historial sin posibilidad de recuperación.
-- **14 advertencias en `npm run lint` (`oxlint`)**:
+- **13 advertencias en `npm run lint` (`oxlint`)** (bajaron de 14 tras los últimos cambios):
   - Acceso a variable durante inicialización (`getInitialConfig` en `useFieldConfig.js`).
-  - Variables e imports no utilizados (`useEffect` en `useLocalStorage` y `useFieldConfig`; `Copy`, `avgPain`, `getActiveFields`, `isFieldActive` en `App.jsx`).
-  - Llamadas a funciones impuras durante el render (`new Date()` en `useDailySummary.js` y `HistoryView.jsx`).
+  - Variables e imports no utilizados (`useEffect` en `useLocalStorage`, `useFieldConfig`, `useProtocolDate`; `Copy`, `avgPain`, `getActiveFields`, `isFieldActive`, `generateGeminiPrompt` en `App.jsx`).
+  - Llamadas a funciones impuras durante el render (`new Date()` en `useDailySummary.js`, `useProtocolDate.js`).
   - Actualización síncrona de estado dentro de `useEffect` (`useNotifications.js`).
 
 ---
 
-## 8. Siguientes 10 pasos recomendados
+## 8. Siguientes pasos recomendados
 
-1. **Corregir rutas PWA y Service Worker para subpath**: Adaptar el registro de `sw.js`, el link al manifiesto e iconos para utilizar rutas relativas o acordes a `import.meta.env.BASE_URL`.
-2. **Actualizar API de notificaciones para móvil**: Reemplazar `new Notification` en `useNotifications.js` por `navigator.serviceWorker.ready.then(reg => reg.showNotification(...))` con manejo de errores `try/catch`.
-3. **Conectar o simplificar `useFieldConfig`**: Conectar los campos del Dashboard en `App.jsx` con `isFieldActive` para que el usuario pueda realmente ocultar/mostrar métricas, o eliminar la funcionalidad para reducir complejidad.
-4. **Subsanar reactividad en `useDailySummary`**: Disparar un evento personalizado (ej. `window.dispatchEvent(new Event('digestive-log-updated'))`) al guardar logs para actualizar el resumen de adherencia inmediatamente sin recargar.
-5. **Eliminar `window.location.reload()`**: Reemplazar los refrescos de ventana en `HistoryView.jsx` y `ResetProtocol.jsx` por gestión de estado reactivo mediante setters de React.
-6. **Robustecer cálculo de días en `useProtocolDate`**: Evitar `Math.abs`, homogeneizar el uso de fechas en hora local y limitar el rango entre día 1 y 14.
-7. **Incluir `mealType` en exportación CSV**: Agregar la columna de tipo de comida en `exportToCSV` dentro de `src/utils/exportData.js`.
-8. **Limpiar código muerto y resolver lints**: Unificar `generateGeminiPrompt` en un único utilitario, eliminar imports huérfanos y solventar las 14 advertencias de `oxlint`.
-9. **Implementar función de importación JSON**: Crear una utilidad de restauración de backup (`importFromJSON`) en la vista de configuración para mitigar el riesgo de pérdida de `localStorage`.
-10. **Completar ciclo de vida del Service Worker**: Añadir evento `activate` para purgar cachés obsoletas y definir estrategia de caché adecuada (`stale-while-revalidate` o `network-first`) para los assets compilados.
+> Los pasos ya completados han sido tachados. El orden refleja prioridad actual.
+
+1. ~~**Corregir rutas PWA y Service Worker para subpath**~~ ✅ commit `f80192e`
+2. ~~**Subsanar reactividad en `useDailySummary` y eliminar `window.location.reload()`**~~ ✅ commit `521ea6f`
+3. **Actualizar API de notificaciones para móvil**: Reemplazar `new Notification()` en `useNotifications.js` por `navigator.serviceWorker.ready.then(reg => reg.showNotification(...))` con `try/catch`. Crítico para iOS PWA.
+4. **Robustecer cálculo de días en `useProtocolDate`**: Evitar `Math.abs`, comparar fechas en hora local y limitar el rango a 1-14.
+5. **Incluir `mealType` en exportación CSV**: Agregar columna en `exportToCSV` dentro de `src/utils/exportData.js`.
+6. **Conectar o simplificar `useFieldConfig`**: Usar `isFieldActive` en el Dashboard para que la configuración de campos tenga efecto real, o eliminar la funcionalidad para reducir deuda técnica.
+7. **Limpiar código muerto y resolver lints**: Eliminar `generateGeminiPrompt` de `App.jsx` (duplicado), purgar imports huérfanos, resolver las 13 advertencias de `oxlint`.
+8. **Implementar importación JSON**: Crear `importFromJSON` en la vista de configuración para restaurar backups y mitigar riesgo de pérdida de datos.
+9. **Completar ciclo de vida del Service Worker**: Evento `activate` para purgar cachés obsoletas + precacheo de bundles de assets compilados.
+10. **Implementar edición de registros guardados**: Permitir corregir un log existente sin borrarlo (modal de edición inline en `HistoryView`).
+11. **Añadir filtros al histórico**: Por tipo de comida (`solid`/`soft`/`liquid`) y por rango de fechas.
+
