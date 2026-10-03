@@ -16,7 +16,7 @@ import { Toast } from './components/Toast';
 import { MealTypeSelector } from './components/MealTypeSelector';
 import { FieldConfig } from './components/FieldConfig';
 import { ResetProtocol } from './components/ResetProtocol';
-import { Bell, Calendar, Save, Settings, History as HistoryIcon, Copy, Sliders, TrendingUp, Clock } from 'lucide-react';
+import { Bell, Calendar, Save, Settings, History as HistoryIcon, Sliders, TrendingUp, Clock } from 'lucide-react';
 
 // ============================================================================
 // APP.JSX - COMPONENTE PRINCIPAL
@@ -90,7 +90,7 @@ function App() {
   const { config, toggleField, getActiveFields, isFieldActive, AVAILABLE_FIELDS } = useFieldConfig();
 
   // Hook para summary del día
-  const { adherence: dailyAdherence, avgPain, timeAgo, hasLogsToday, logCount } = useDailySummary();
+  const { adherence: dailyAdherence, timeAgo, hasLogsToday, logCount } = useDailySummary();
 
   // Estado para la vista actual (dashboard vs histórico vs settings)
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'history' | 'settings'
@@ -184,71 +184,7 @@ function App() {
     }
   };
 
-  // Genera prompt formateado para Gemini
-  const generateGeminiPrompt = () => {
-    const logs = JSON.parse(localStorage.getItem('digestive-logs') || '[]');
-    
-    if (logs.length === 0) {
-      showToast('❌ No hay registros para generar reporte', 'error');
-      return;
-    }
 
-    // Agrupar logs por día
-    const logsByDay = {};
-    logs.forEach(log => {
-      const date = new Date(log.date).toLocaleDateString('es-ES');
-      if (!logsByDay[date]) {
-        logsByDay[date] = [];
-      }
-      logsByDay[date].push(log);
-    });
-
-    // Generar prompt estructurado
-    let prompt = `=== DIGESTIVE SPEEDRUN TRACKER - REPORTE PARA ANÁLISIS CLÍNICO ===\n\n`;
-    prompt += `Hola, soy un paciente siguiendo un protocolo de 14 días para recuperación intestinal (SIBO/FODMAPs, disbiosis, dolor en nervio frénico).\n\n`;
-    prompt += `A continuación te presento mi registro detallado de adherencia y síntomas. Por favor, analiza los datos y proporciona:\n`;
-    prompt += `1. Correlación entre adherencia al protocolo y mejora de síntomas\n`;
-    prompt += `2. Patrones identificables (horarios, tipos de comida, etc.)\n`;
-    prompt += `3. Recomendaciones específicas basadas en mis datos\n`;
-    prompt += `4. Áreas de mejora en adherencia\n\n`;
-    prompt += `=== REGISTRO DETALLADO ===\n\n`;
-
-    Object.entries(logsByDay).forEach(([date, dayLogs]) => {
-      prompt += `📅 ${date}\n`;
-      prompt += `---\n`;
-      dayLogs.forEach((log, index) => {
-        const mealTypeLabel = log.mealType === 'solid' ? 'Sólida' : log.mealType === 'soft' ? 'Pastosa' : 'Líquida';
-        const time = new Date(log.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-        
-        prompt += `🍽️ Registro ${index + 1} (${mealTypeLabel}) - ${time}\n`;
-        prompt += `   Adherencia:\n`;
-        prompt += `   - Arroz fresco: ${log.adherence.freshRice ? '✅' : '❌'}\n`;
-        prompt += `   - Proteína blanda: ${log.adherence.softProtein ? '✅' : '❌'}\n`;
-        prompt += `   - Sin edulcorantes: ${log.adherence.noSweeteners ? '✅' : '❌'}\n`;
-        prompt += `   - Sin frío: ${log.adherence.noColdFood ? '✅' : '❌'}\n`;
-        prompt += `   - Ayuno: ${log.adherence.fastingHours}h\n`;
-        prompt += `   Síntomas:\n`;
-        prompt += `   - Dolor frénico: ${log.symptoms.phrenicPain}/10\n`;
-        prompt += `   - Distensión: ${log.symptoms.bloating}/10\n`;
-        prompt += `   - Reflujo: ${log.symptoms.reflux}/10\n`;
-        prompt += `   - Bristol: Tipo ${log.symptoms.bristolScale}\n`;
-        if (log.notes) {
-          prompt += `   Notas: ${log.notes}\n`;
-        }
-        prompt += `\n`;
-      });
-    });
-
-    prompt += `=== FIN DEL REGISTRO ===\n\n`;
-    prompt += `Por favor, proporciona tu análisis en un formato claro y estructurado.`;
-
-    // Copiar al portapapeles
-    navigator.clipboard.writeText(prompt).then(() => {
-      showToast('✅ Prompt copiado al portapapeles', 'success');
-    }).catch(() => {
-      showToast('❌ Error al copiar', 'error');
-    });
-  };
 
   // ============================================================================
   // RENDERIZADO - UI

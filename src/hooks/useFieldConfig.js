@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 // ============================================================================
 // HOOK: useFieldConfig
@@ -12,18 +12,18 @@ import { useState, useEffect } from 'react';
  * - Alguns quieren máximo detalle, otros prefieren simplicidad
  * - Necesitamos sistema flexible y escalable
  * - El usuario debe tener control sobre qué datos recopila
-
+ 
  * FUNCIONAMIENTO:
  * 1. Define campos disponibles organizados por categoría
  * 2. Permite activar/desactivar campos individualmente
  * 3. Persiste configuración en localStorage
  * 4. Proporciona lista de campos activos para renderizado
-
+ 
  * CAMPOS DISPONIBLES:
  * - Adherencia: reglas del protocolo
  * - Síntomas: síntomas digestivos y generales
  * - Contexto: información contextual (horario, lugar, etc.)
-
+ 
  * @returns {Object} - { config, toggleField, activeFields }
  */
 
@@ -57,6 +57,18 @@ const AVAILABLE_FIELDS = {
   },
 };
 
+// Genera configuración inicial con defaults
+function getInitialConfig() {
+  const initial = {};
+  Object.entries(AVAILABLE_FIELDS).forEach(([category, { fields }]) => {
+    initial[category] = {};
+    fields.forEach((field) => {
+      initial[category][field.id] = field.default;
+    });
+  });
+  return initial;
+}
+
 export function useFieldConfig() {
   const [config, setConfig] = useState(() => {
     if (typeof window === 'undefined') {
@@ -73,18 +85,6 @@ export function useFieldConfig() {
       return getInitialConfig();
     }
   });
-
-  // Genera configuración inicial con defaults
-  function getInitialConfig() {
-    const initial = {};
-    Object.entries(AVAILABLE_FIELDS).forEach(([category, { fields }]) => {
-      initial[category] = {};
-      fields.forEach(field => {
-        initial[category][field.id] = field.default;
-      });
-    });
-    return initial;
-  }
 
   // Guarda configuración en localStorage
   const saveConfig = (newConfig) => {

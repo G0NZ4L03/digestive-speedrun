@@ -52,9 +52,17 @@ export function exportToCSV(filename = 'digestive-logs.csv') {
       return;
     }
 
+    // Mapeo amigable para el tipo de ingesta
+    const mealTypeMap = {
+      solid: 'Sólida',
+      soft: 'Pastosa',
+      liquid: 'Líquida'
+    };
+
     // Header del CSV
     const headers = [
       'Fecha',
+      'Tipo de Ingesta',
       'Arroz Fresco',
       'Proteína Blanda',
       'Sin Edulcorantes',
@@ -70,6 +78,7 @@ export function exportToCSV(filename = 'digestive-logs.csv') {
     // Convertir cada log a fila CSV
     const rows = logs.map(log => [
       log.date,
+      mealTypeMap[log.mealType] || log.mealType || 'No especificado',
       log.adherence.freshRice ? 'Sí' : 'No',
       log.adherence.softProtein ? 'Sí' : 'No',
       log.adherence.noSweeteners ? 'Sí' : 'No',
@@ -117,7 +126,13 @@ export function exportToSimpleCSV(filename = 'digestive-logs-simple.csv') {
       return;
     }
 
-    const headers = ['Fecha', 'Adherencia %', 'Dolor Promedio', 'Notas'];
+    const mealTypeMap = {
+      solid: 'Sólida',
+      soft: 'Pastosa',
+      liquid: 'Líquida'
+    };
+
+    const headers = ['Fecha', 'Tipo de Ingesta', 'Adherencia %', 'Dolor Promedio', 'Notas'];
     
     const rows = logs.map(log => {
       const adherenceRules = ['freshRice', 'softProtein', 'noSweeteners', 'noColdFood'];
@@ -127,6 +142,7 @@ export function exportToSimpleCSV(filename = 'digestive-logs-simple.csv') {
       
       return [
         log.date,
+        mealTypeMap[log.mealType] || log.mealType || 'No especificado',
         adherencePercent,
         avgPain,
         `"${(log.notes || '').replace(/"/g, '""')}"`

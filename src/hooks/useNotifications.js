@@ -1,80 +1,78 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 // ============================================================================
 // HOOK: useNotifications
 // ============================================================================
 
 /**
- * Hook personalizado para gestionar Web Push Notifications.
+ * Hook personalizado para gestionar Web Notifications con soporte
+ * para Service Worker (requerido en PWA móvil iOS/Android) y fallback
+ * a la Notification API tradicional.
  *
- * PROBLEMA QUE RESUELVE:
- * - Las notificaciones web requieren permiso explícito del usuario
- * - El estado de permiso puede cambiar (granted, denied, default)
- * - Necesitamos una API sencilla para pedir permiso y mostrar notificaciones
-
- * FUNCIONAMIENTO:
- * 1. Al montar, verifica si el navegador soporta notificaciones
- * 2. Sincroniza el estado de permiso con React state
- * 3. Proporciona métodos para pedir permiso y mostrar notificaciones
-
- * ESTADOS DE PERMISO:
- * - default: Usuario aún no ha decidido (podemos pedir)
- * - granted: Usuario ha permitido notificaciones
- * - denied: Usuario ha bloqueado notificaciones (no podemos cambiar)
-
- * COMPATIBILIDAD:
- * - Verifica 'Notification' in window para navegadores que no lo soportan
- * - Graceful degradation: Si no soportado, devuelve 'denied'
-
  * @returns {Object} - { permission, requestPermission, showNotification }
  */
 export function useNotifications() {
-  const [permission, setPermission] = useState('default');
-
-  // Detectar estado de permiso al montar
-  useEffect(() => {
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
+  const [permission, setPermission] = useState(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
     }
-  }, []);
+    return 'default';
+  });
 
-  // Pedir permiso al usuario (solo funciona si está en 'default')
+  // Pedir permiso al usuario (debe llamarse como respuesta a un toque/acción explícita del usuario)
   const requestPermission = async () => {
-    if ('Notification' in window) {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      return result;
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const result = await Notification.requestPermission();
+        setPermission(result);
+        return result;
+      } catch (err) {
+        console.error('Error solicitando permisos de notificación:', err);
+        return 'denied';
+      }
     }
     return 'denied';
   };
 
-  // Mostrar notificación (solo si tenemos permiso)
-  const showNotification = (title, options = {}) => {
-    if ('Notification' in window && permission === 'granted') {
-      new Notification(title, {
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
-        ...options,
-      });
+  // Mostrar notificación (ServiceWorkerRegistration con fallback a new Notification)
+  const showNotification = async (title, options = {}) => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (permission !== 'granted' && Notification.permission !== 'granted') return;
+
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    const notificationOptions = {
+      icon: `${baseUrl}icon-192.png`,
+      badge: `${baseUrl}icon-192.png`,
+      ...options,
+    };
+
+    // 1. Intentar vía Service Worker (requerido para iOS PWA y Chrome Android)
+    if ('serviceWorker' in navigator) {
+      try {
+        // Prevenir bloqueo indefinido si no hay SW registrado usando getRegistration y Promise.race con timeout de 2s
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2000));
+        const registration = await Promise.race([
+          navigator.serviceWorker.getRegistration().then((reg) => reg || navigator.serviceWorker.ready),
+          timeoutPromise,
+        ]);
+
+        if (registration && typeof registration.showNotification === 'function') {
+          await registration.showNotification(title, notificationOptions);
+          return;
+        }
+      } catch (swError) {
+        console.warn('Fallo al mostrar notificación vía Service Worker, recurriendo a fallback:', swError);
+      }
+    }
+
+    // 2. Fallback: new Notification (para entornos de escritorio tradicionales)
+    try {
+      new Notification(title, notificationOptions);
+    } catch (fallbackError) {
+      console.warn('No se pudo mostrar la notificación mediante constructor estándar:', fallbackError);
     }
   };
 
   return { permission, requestPermission, showNotification };
 }
 
-/*
- * RAZÓN DE ESTE HOOK:
- * - Abstracción: Esconde la complejidad de Web Notifications API
- * - Estado reactivo: Sincroniza permiso con UI
- * - Reutilizable: Puede usarse en cualquier componente que necesite notificaciones
-
- * USO EN ESTE PROYECTO:
- * - Timer de vaciado gástrico: Alerta cuando completan 45 min
- * - Guardado de log: Confirmación de guardado exitoso
-
- * FUTURO: Mejoras posibles:
- * - Añadir Service Worker para notificaciones push remotas
- * - Añadir acciones en notificaciones (botones interactivos)
- * - Añadir scheduling de notificaciones (recordatorios)
- * - Considerar Notification API más avanzada con Service Worker
- */

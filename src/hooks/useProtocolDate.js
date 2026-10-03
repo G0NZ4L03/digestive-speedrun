@@ -5,19 +5,34 @@ import { useState, useEffect } from 'react';
 // ============================================================================
 
 /**
+ * Calcula el día del protocolo (1-14) comparando en hora local a medianoche.
+ * Evita Math.abs para que fechas futuras no sumen días positivos,
+ * y acota el resultado estrictamente entre el día 1 y 14.
+ */
+function calculateCurrentDay(dateStr) {
+  if (!dateStr) return 1;
+  try {
+    const parts = dateStr.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return 1;
+    const [year, month, day] = parts;
+    const startLocal = new Date(year, month - 1, day);
+    const now = new Date();
+    const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const diffMs = todayLocal - startLocal;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // Si la fecha es futura, diffDays será negativo -> Día 1
+    // Acotar estrictamente entre 1 y 14
+    return Math.max(1, Math.min(14, diffDays + 1));
+  } catch {
+    return 1;
+  }
+}
+
+/**
  * Hook personalizado para gestionar la fecha de inicio del protocolo.
  *
- * PROBLEMA QUE RESUELVE:
- * - El cálculo del día del protocolo estaba hardcodeado a una fecha fija
- * - Los usuarios necesitan poder configurar cuándo empezaron su protocolo
- * - Necesitamos persistencia de esta configuración
-
- * FUNCIONAMIENTO:
- * 1. Al montar, lee la fecha de inicio de localStorage
- * 2. Si no existe, usa la fecha actual por defecto
- * 3. Calcula el día actual del protocolo (días desde inicio + 1)
- * 4. Permite actualizar la fecha de inicio
-
  * @returns {Object} - { startDate, currentDay, setStartDate }
  */
 export function useProtocolDate() {
@@ -34,14 +49,21 @@ export function useProtocolDate() {
     }
   });
 
-  // Calcula el día actual del protocolo (1-based)
-  const currentDay = (() => {
-    const start = new Date(startDate);
-    const now = new Date();
-    const diffTime = Math.abs(now - start);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays + 1; // +1 porque el día 1 es el primer día
-  })();
+  // El día actual es un valor derivado directamente de startDate
+  const currentDay = calculateCurrentDay(startDate);
+
+  // Forzar actualización cuando la app vuelve a primer plano tras medianoche
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setTick((t) => t + 1);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   // Actualiza la fecha de inicio y la persiste
   const handleSetStartDate = (newDate) => {
@@ -57,19 +79,3 @@ export function useProtocolDate() {
 
   return { startDate, currentDay, setStartDate: handleSetStartDate };
 }
-
-/*
- * RAZÓN DE ESTE HOOK:
- * - Flexibilidad: Permite al usuario configurar su fecha de inicio real
- * - Persistencia: La configuración sobrevive a refresh
- * - Cálculo automático: No requiere cálculo manual del día actual
- *
- * USO EN ESTE PROYECTO:
- * - Header de App: Muestra "Día X de 14"
- * - Configuración: Permite cambiar fecha de inicio si el usuario se equivocó
- *
- * FUTURO: Mejoras posibles:
- * - Añadir duración configurable (14 días por defecto)
- * - Añadir multiple protocolos (ej: protocolo A, protocolo B)
- * - Añadir alerts cuando se complete el protocolo (día 14)
- */
