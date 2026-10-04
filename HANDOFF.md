@@ -129,6 +129,7 @@ npm run generate-icons
 - **PWA con rutas correctas para GitHub Pages**: `main.jsx` usa `import.meta.env.BASE_URL` para registrar el SW; `index.html` usa `%BASE_URL%` para el icono y el manifest; `manifest.json` usa `./` en `start_url`, `scope` e iconos. El build de Vite resuelve todo correctamente bajo `/digestive-speedrun/`.
 - **Notificaciones PWA híbridas y robustas**: `useNotifications.js` utiliza `registration.showNotification` con timeout de 2s vía `Promise.race` para evitar bloqueos si no hay SW, fallback automático a `new Notification` y solicitud de permisos exclusivamente bajo gesto del usuario.
 - **Cálculo de fechas robusto**: `useProtocolDate.js` normaliza a medianoche local, evita `Math.abs`, acota estrictamente entre Día 1 y 14, y actualiza el día dinámicamente con listener de `visibilitychange`.
+- **Ciclo de vida y caché del Service Worker (`sw.js`)**: Versión `digestive-sr-v2` con precacheo de recursos críticos de arranque (`./`, `index.html`, `manifest.json`, iconos), purga automática de versiones previas de caché en el evento `activate` con `clients.claim()`, activación inmediata con `skipWaiting()`, y estrategia híbrida: *Network-First* con fallback a caché para navegación (HTML) y *Cache-First* con guardado dinámico para recursos estáticos (JS, CSS, imágenes).
 - **Reset de protocolo**: Purgado completo de datos con doble confirmación de seguridad y **sin recarga forzada** — preserva el temporizador gástrico en curso.
 - **Sincronización reactiva de logs**: Bus de evento personalizado `digestive-logs-updated` que propaga cambios en `localStorage` a `useDailySummary` e `HistoryView` dentro de la misma pestaña sin depender de `window.onstorage`.
 
@@ -136,14 +137,11 @@ npm run generate-icons
 
 ## 6. Qué está a medias o incompleto
 
-- **Service Worker incompleto**: `public/sw.js` cachea `['./']` (corregido de `['/']`). No realiza precacheo de los bundles `assets/*.js` o `assets/*.css`, ni implementa el evento `activate` para limpiar versiones antiguas de caché (`digestive-sr-v1`).
 - **Navegación sin enrutador**: La alternancia de vistas se gestiona mediante un estado local `currentView` sin URLs ni soporte para el botón de retroceso nativo del navegador móvil.
 - **Roadmap clínico pendiente (especificado en README.md)**:
   - Módulo de suplementación y medicación activa.
   - Recordatorios periódicos programados (ej. infusiones cada 4 horas).
   - Gráficas visuales de evolución temporal de síntomas.
-  - Edición de registros guardados (para corregir errores sin borrar).
-  - Filtros en histórico (por tipo de comida, por rango de fechas).
 
 ---
 
@@ -190,7 +188,7 @@ npm run generate-icons
 8. ~~**Implementar importación JSON y copias de seguridad**~~ ✅ `importFromJSON` + `BackupRestore.jsx`
 9. ~~**Implementar edición de registros guardados**~~ ✅ Edición inline en `HistoryView` con guardado reactivo y soporte de campos estándar y opcionales
 10. ~~**Añadir filtros al histórico**~~ ✅ Filtros interactivos por tipo de comida (sólida/pastosa/líquida) y alertas clínicas (síntomas > 5, adherencia < 75%)
-11. **Completar ciclo de vida del Service Worker**: Evento `activate` para purgar cachés obsoletas + precacheo de bundles de assets compilados.
+11. ~~**Completar ciclo de vida del Service Worker**~~ ✅ Evento `activate` para purgar cachés obsoletas, `skipWaiting`, `clients.claim`, precacheo y estrategia híbrida network-first/cache-first
 12. **Gráficas visuales de evolución temporal de síntomas**: Visualización interactiva de tendencias de dolor, hinchazón y consistencia Bristol en 14 días.
 
 
