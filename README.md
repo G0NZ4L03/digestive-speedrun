@@ -27,7 +27,7 @@ El protocolo se basa en:
 - **Build**: Vite con optimización automática
 - **Lint**: oxlint (ultra rápido)
 
-## � Versiones
+## 📦 Versiones
 
 ### v1.1 - Versión Actual ✅
 *Estado: Completa y desplegada en GitHub Pages*
@@ -54,10 +54,31 @@ El protocolo se basa en:
 
 **Enlace:** https://g0nz4l03.github.io/digestive-speedrun/
 
-### v1.2 - Próxima Versión 🚧
-*Estado: Planificación*
+### v1.2 - En Desarrollo 🚧
+*Estado: Planificación completa, listo para implementar*
 
-Ver roadmap abajo.
+**Objetivo Principal:** Integración con Gemini API para análisis clínico automatizado
+
+**Enfoque:** Opt-in, mínima fricción, privacidad por defecto
+
+**Características planeadas:**
+- [ ] Configuración de API key de Gemini (opt-in)
+- [ ] Integración directa con Gemini API desde frontend
+- [ ] Panel de análisis IA con resultados estructurados
+- [ ] Prompts mejorados para análisis clínico profundo
+- [ ] Fallback a modo local (copiar prompt) si falla IA
+- [ ] Banner informativo en Dashboard
+- [ ] Confirmación antes de enviar datos a IA
+- [ ] Historial de análisis (últimos 3)
+
+**Seguridad:**
+- Privacidad por defecto (nada se comparte sin consentimiento)
+- API key guardada en localStorage (en dispositivo del usuario)
+- Usuario puede borrar API key en cualquier momento
+- Datos que se envían: logs de adherencia/síntomas, notas, fecha/hora
+- **NO** se envían: identificadores personales, ubicación, metadata
+
+**Plan detallado:** Ver `docs/v1.2-plan.md`
 
 ## 📱 Características (v1.1)
 
@@ -197,6 +218,8 @@ digestive-speedrun/
 │   ├── App.jsx                # Componente principal (Dashboard)
 │   ├── main.jsx               # Punto de entrada
 │   └── index.css              # Estilos globales + Tailwind
+├── docs/
+│   └── v1.2-plan.md           # Plan de desarrollo v1.2
 ├── index.html                 # HTML entry point
 ├── package.json               # Dependencias y scripts
 ├── vite.config.js             # Configuración de Vite
@@ -204,6 +227,7 @@ digestive-speedrun/
 ├── postcss.config.js          # Configuración de PostCSS
 ├── HANDOFF.md                 # Documento de transferencia técnica
 ├── AGENTS.md                  # Manual para desarrolladores
+├── CHANGELOG.md               # Historial de versiones
 └── README.md                  # Este archivo
 ```
 
@@ -238,11 +262,26 @@ La app está configurada como Progressive Web App y puede instalarse:
 3. La app aparecerá como app nativa con icono propio
 4. Funciona offline gracias al Service Worker
 
-## �️ Roadmap
+## Roadmap
 
-### v1.2 - Planificado
-Objetivo: Maximizar comodidad, seguridad y atajos para el usuario
+### v1.2 - En Desarrollo 🚧
+**Objetivo:** Integración con Gemini API para análisis clínico automatizado
 
+**Enfoque:** Opt-in, mínima fricción, privacidad por defecto
+
+**Características:**
+- [ ] Configuración de API key de Gemini (opt-in)
+- [ ] Integración directa con Gemini API desde frontend
+- [ ] Panel de análisis IA con resultados estructurados
+- [ ] Prompts mejorados para análisis clínico profundo
+- [ ] Fallback a modo local (copiar prompt) si falla IA
+- [ ] Banner informativo en Dashboard
+- [ ] Confirmación antes de enviar datos a IA
+- [ ] Historial de análisis (últimos 3)
+
+**Plan detallado:** Ver `docs/v1.2-plan.md`
+
+### v1.3 - Futuro
 **Comodidad:**
 - [ ] Recordatorios programados (infusiones cada 4h)
 - [ ] Modo quick-entry (registro rápido sin cambiar de vista)
@@ -259,22 +298,21 @@ Objetivo: Maximizar comodidad, seguridad y atajos para el usuario
 - [ ] Swipe gestures en móvil (swipe para borrar/editar)
 - [ ] Atajos de teclado en desktop
 
-**Variables/Datos:**
+**Integraciones:**
+- [ ] FatSecret API (automatizar tracking de comida)
 - [ ] Más campos configurables (temperatura corporal, peso, etc.)
 - [ ] Custom presets de configuración
 - [ ] Múltiples protocolos (protocolo A, B, C)
 
-**Animaciones/Micro-interacciones:**
+**UX/UI:**
+- [ ] Modo compacto para visualización rápida
+- [ ] Dark mode más refinado con más contrastes
 - [ ] Celebraciones cuando se cumplen objetivos
 - [ ] Animaciones de carga más suaves
 - [ ] Feedback háptico en móvil (vibración al guardar)
-
-**Interfaz:**
-- [ ] Modo compacto para visualización rápida
-- [ ] Dark mode más refinado con más contrastes
 - [ ] Accesibilidad mejorada (VoiceOver, TalkBack)
 
-### v1.3 - Futuro
+### v1.4 - Futuro Lejano
 - [ ] Navegación con enrutador formal (React Router)
 - [ ] Gamificación (streaks, achievements)
 - [ ] Migración a IndexedDB

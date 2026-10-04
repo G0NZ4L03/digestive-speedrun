@@ -6,6 +6,9 @@ Documento de transferencia y análisis técnico del estado actual del repositori
 **Estado:** Producción en GitHub Pages
 **Fecha finalización:** Enero 2025
 
+**Próxima versión:** v1.2 - Integración con Gemini API
+**Plan detallado:** Ver `docs/v1.2-plan.md`
+
 ---
 
 ## 1. Objetivo de la app
