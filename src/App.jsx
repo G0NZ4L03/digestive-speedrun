@@ -17,6 +17,7 @@ import { MealTypeSelector } from './components/MealTypeSelector';
 import { FieldConfig } from './components/FieldConfig';
 import { ResetProtocol } from './components/ResetProtocol';
 import { BackupRestore } from './components/BackupRestore';
+import { TrendsView } from './components/TrendsView';
 import { Bell, Calendar, Save, Settings, History as HistoryIcon, Sliders, TrendingUp, Clock } from 'lucide-react';
 
 // ============================================================================
@@ -242,19 +243,31 @@ function App() {
           <div className="flex gap-2">
             <button
               onClick={() => setCurrentView('history')}
-              className={`p-2 rounded-lg touch-manipulation ${
-                currentView === 'history' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400'
+              className={`p-2 rounded-lg touch-manipulation transition-colors ${
+                currentView === 'history' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-300'
               }`}
               aria-label="Ver histórico"
+              title="Histórico de registros"
             >
               <HistoryIcon className="w-5 h-5" />
             </button>
             <button
+              onClick={() => setCurrentView('trends')}
+              className={`p-2 rounded-lg touch-manipulation transition-colors ${
+                currentView === 'trends' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-300'
+              }`}
+              aria-label="Ver tendencias y gráficas"
+              title="Gráficas de evolución temporal"
+            >
+              <TrendingUp className="w-5 h-5" />
+            </button>
+            <button
               onClick={() => setCurrentView('settings')}
-              className={`p-2 rounded-lg touch-manipulation ${
-                currentView === 'settings' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400'
+              className={`p-2 rounded-lg touch-manipulation transition-colors ${
+                currentView === 'settings' ? 'bg-dark-success text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-300'
               }`}
               aria-label="Configuración"
+              title="Ajustes del protocolo"
             >
               <Settings className="w-5 h-5" />
             </button>
@@ -498,7 +511,15 @@ function App() {
 
       {/* Vista: Histórico */}
       <ViewTransition isActive={currentView === 'history'}>
-        <HistoryView />
+        <HistoryView onNavigateToTrends={() => setCurrentView('trends')} />
+      </ViewTransition>
+
+      {/* Vista: Gráficas de evolución temporal y tendencias */}
+      <ViewTransition isActive={currentView === 'trends'}>
+        <TrendsView
+          startDate={startDate}
+          onNavigateToDashboard={() => setCurrentView('dashboard')}
+        />
       </ViewTransition>
 
       {/* Vista: Configuración */}

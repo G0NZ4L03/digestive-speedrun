@@ -130,6 +130,7 @@ npm run generate-icons
 - **Notificaciones PWA híbridas y robustas**: `useNotifications.js` utiliza `registration.showNotification` con timeout de 2s vía `Promise.race` para evitar bloqueos si no hay SW, fallback automático a `new Notification` y solicitud de permisos exclusivamente bajo gesto del usuario.
 - **Cálculo de fechas robusto**: `useProtocolDate.js` normaliza a medianoche local, evita `Math.abs`, acota estrictamente entre Día 1 y 14, y actualiza el día dinámicamente con listener de `visibilitychange`.
 - **Ciclo de vida y caché del Service Worker (`sw.js`)**: Versión `digestive-sr-v2` con precacheo de recursos críticos de arranque (`./`, `index.html`, `manifest.json`, iconos), purga automática de versiones previas de caché en el evento `activate` con `clients.claim()`, activación inmediata con `skipWaiting()`, y estrategia híbrida: *Network-First* con fallback a caché para navegación (HTML) y *Cache-First* con guardado dinámico para recursos estáticos (JS, CSS, imágenes).
+- **Gráficas visuales de evolución temporal y tendencias (`TrendsView`)**: Visualizador interactivo vectorial SVG con curvas y áreas sombreadas para Síntomas (Dolor Frénico, Distensión Abdominal, Reflujo), Adherencia (% de reglas) y Escala Bristol (con zona óptima 3-4 destacada). Permite alternar entre agrupación diaria (Día 1 a 14) y por comida individual, selección táctil de puntos con tarjeta de detalle contextual, resumen clínico con detección de tendencia (mejora vs empeoramiento) y modo demostración interactivo con datos de ejemplo. Accesible desde la barra de navegación superior y desde el Histórico.
 - **Reset de protocolo**: Purgado completo de datos con doble confirmación de seguridad y **sin recarga forzada** — preserva el temporizador gástrico en curso.
 - **Sincronización reactiva de logs**: Bus de evento personalizado `digestive-logs-updated` que propaga cambios en `localStorage` a `useDailySummary` e `HistoryView` dentro de la misma pestaña sin depender de `window.onstorage`.
 
@@ -141,7 +142,6 @@ npm run generate-icons
 - **Roadmap clínico pendiente (especificado en README.md)**:
   - Módulo de suplementación y medicación activa.
   - Recordatorios periódicos programados (ej. infusiones cada 4 horas).
-  - Gráficas visuales de evolución temporal de síntomas.
 
 ---
 
@@ -189,7 +189,9 @@ npm run generate-icons
 9. ~~**Implementar edición de registros guardados**~~ ✅ Edición inline en `HistoryView` con guardado reactivo y soporte de campos estándar y opcionales
 10. ~~**Añadir filtros al histórico**~~ ✅ Filtros interactivos por tipo de comida (sólida/pastosa/líquida) y alertas clínicas (síntomas > 5, adherencia < 75%)
 11. ~~**Completar ciclo de vida del Service Worker**~~ ✅ Evento `activate` para purgar cachés obsoletas, `skipWaiting`, `clients.claim`, precacheo y estrategia híbrida network-first/cache-first
-12. **Gráficas visuales de evolución temporal de síntomas**: Visualización interactiva de tendencias de dolor, hinchazón y consistencia Bristol en 14 días.
+12. ~~**Gráficas visuales de evolución temporal de síntomas**~~ ✅ Visualizador interactivo vectorial `TrendsView` con curvas SVG de dolor, hinchazón, reflujo, adherencia y Bristol, agrupación día a día o comida a comida, e insights clínicos
+13. **Módulo de suplementación y medicación activa**: Gestión de tomas diarias (enzimas, probióticos, antimicrobianos) sincronizado con el protocolo.
+14. **Recordatorios periódicos programados**: Alarmas o notificaciones locales para tomas de infusiones cada 4 horas.
 
 
 

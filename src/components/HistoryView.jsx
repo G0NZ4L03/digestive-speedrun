@@ -11,6 +11,7 @@ import {
   X,
   Filter,
   RotateCcw,
+  TrendingUp,
 } from 'lucide-react';
 import { exportToJSON, exportToCSV, exportToSimpleCSV } from '../utils/exportData';
 import { Toggle } from './Toggle';
@@ -28,7 +29,7 @@ import { MealTypeSelector } from './MealTypeSelector';
  *
  * @returns {JSX.Element}
  */
-export function HistoryView() {
+export function HistoryView({ onNavigateToTrends }) {
   const [expandedLog, setExpandedLog] = useState(null);
   const [editingDate, setEditingDate] = useState(null); // Fecha del log que se está editando
   const [editForm, setEditForm] = useState(null); // Estado temporal del log en edición
@@ -331,6 +332,15 @@ export function HistoryView() {
             JSON
           </button>
         </div>
+        {onNavigateToTrends && (
+          <button
+            onClick={onNavigateToTrends}
+            className="w-full py-2.5 px-3 bg-gray-800 hover:bg-gray-700 border border-gray-700/70 text-emerald-400 text-sm rounded-lg touch-manipulation active:scale-[0.98] transition-transform flex items-center justify-center gap-2 font-medium"
+          >
+            <TrendingUp className="w-4 h-4" />
+            Ver Gráficas de Evolución Temporal
+          </button>
+        )}
       </div>
 
       {/* Barra de filtros interactivos */}
