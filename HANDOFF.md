@@ -2,6 +2,10 @@
 
 Documento de transferencia y análisis técnico del estado actual del repositorio.
 
+**Versión:** v1.1 (Completada y desplegada)
+**Estado:** Producción en GitHub Pages
+**Fecha finalización:** Enero 2025
+
 ---
 
 ## 1. Objetivo de la app

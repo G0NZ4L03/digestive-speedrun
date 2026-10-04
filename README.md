@@ -1,6 +1,6 @@
 # Digestive SpeedRun Tracker
 
-MVP clínico para seguimiento de protocolo de recuperación intestinal de 14 días. Diseñado para monitorear adherencia y síntomas en pacientes con disbiosis intestinal, SIBO/FODMAPs y dolor en nervio frénico.
+Tracker clínico MVP para seguimiento de protocolo de recuperación intestinal de 14 días. Diseñado para monitorear adherencia y síntomas en pacientes con disbiosis intestinal, SIBO/FODMAPs y dolor en nervio frénico.
 
 ## 🎯 Objetivo Clínico
 
@@ -25,46 +25,104 @@ El protocolo se basa en:
 - **PWA**: Service Worker + Manifest para instalación nativa
 - **Iconos**: lucide-react (biblioteca ligera y moderna)
 - **Build**: Vite con optimización automática
+- **Lint**: oxlint (ultra rápido)
 
-## 📱 Características
+## � Versiones
 
-### Módulo de Adherencia (Acciones - Toggles booleanos)
-Registro diario rápido de las reglas innegociables:
-- ¿Arroz/carbohidrato recién hecho y baboso? (Evitar almidón resistente)
-- ¿Proteína escalfada/blanda?
-- ¿Cero edulcorantes artificiales consumidos hoy?
-- ¿Cero alimentos o bebidas frías?
-- Registro de horas de ayuno nocturno (Slider numérico, objetivo >12h)
+### v1.1 - Versión Actual ✅
+*Estado: Completa y desplegada en GitHub Pages*
 
-### Módulo de Síntomas (Checklist Clínico - Sliders)
-Registro al final del día para cruzar acciones con respuesta fisiológica:
-- Dolor/Pinzamiento Nervio Frénico (0-10)
-- Distensión Abdominal / Gas (0-10)
-- Reflujo / Acidez (0-10)
-- Escala de Bristol (1-7, selector visual descriptivo)
+**Características implementadas:**
+- ✅ Timer de vaciado gástrico (45 min con persistencia y background)
+- ✅ Módulo de Adherencia (toggles + slider de ayuno 6-16h)
+- ✅ Módulo de Síntomas (sliders + escala Bristol)
+- ✅ Selector de tipo de comida (sólida/pastosa/líquida)
+- ✅ Configuración de campos dinámica (usuario elige qué trackear)
+- ✅ Campos opcionales (suplementos, horario, energía, sueño, estrés)
+- ✅ Histórico con filtros y edición inline
+- ✅ Exportación (JSON, CSV completo, CSV simple)
+- ✅ Importación de backups JSON
+- ✅ Gráficas de tendencias visuales
+- ✅ Summary del día (adherencia %, tiempo último registro)
+- ✅ Validación de datos
+- ✅ Reset del protocolo sin recarga
+- ✅ PWA con Service Worker robusto
+- ✅ Notificaciones híbridas (SW + fallback)
+- ✅ Sincronización reactiva entre pestañas
+- ✅ Rutas correctas para GitHub Pages
+- ✅ 0 errores/advertencias de linter
+
+**Enlace:** https://g0nz4l03.github.io/digestive-speedrun/
+
+### v1.2 - Próxima Versión 🚧
+*Estado: Planificación*
+
+Ver roadmap abajo.
+
+## 📱 Características (v1.1)
+
+### Módulo de Adherencia
+- Toggles para reglas del protocolo:
+  - Arroz recién hecho y baboso
+  - Proteína escalfada/blanda
+  - Cero edulcorantes artificiales
+  - Cero alimentos/bebidas frías
+- Slider de ayuno nocturno (6-16h, colores invertidos)
+- Campos opcionales: suplementos, horario comida, lugar comida
+
+### Módulo de Síntomas
+- Sliders (0-10) para:
+  - Dolor en nervio frénico
+  - Distensión abdominal / gas
+  - Reflujo / acidez
+- Escala de Bristol (1-7)
+- Campos opcionales: energía, sueño, estrés, movimientos intestinales
 
 ### Timer de Vaciado Gástrico
-- Botón prominente: "Fin Comida Sólida"
 - Cuenta atrás de 45 minutos
-- **Persistencia**: El timer continúa contando aunque cierres la app
-- Alerta visual + Web Push Notification al completar
+- Persistencia en localStorage
+- Funciona en background (Page Visibility API)
+- Alerta visual y Web Notification al completar
 - Mensaje: "Vaciado gástrico inicial completado. Vía libre para infusión tibia"
 
-### Configuración del Protocolo
-- Fecha de inicio configurable
-- Cálculo automático del día actual del protocolo
-- Persistencia de la configuración
+### Configuración
+- Fecha de inicio del protocolo configurable
+- Cálculo automático del día actual (1-14)
+- Campos configurables (usuario elige qué trackear)
+- Presets de configuración (futuro)
 
-### Histórico de Logs
-- Visualización de todos los logs guardados
-- Logs expandibles para ver detalles completos
-- Indicadores de adherencia (porcentaje) con colores semánticos
-- Indicadores de severidad de síntomas con colores semánticos
-- Funcionalidad de borrar logs individuales o todos
-- **Exportación de datos**:
+### Histórico
+- Logs expandibles con detalles
+- Indicadores de adherencia (%) con colores semánticos
+- Indicadores de severidad de síntomas con colores
+- **Filtros avanzados:**
+  - Por tipo de comida (sólida/pastosa/líquida)
+  - Por alertas clínicas (síntomas > 5, adherencia < 75%)
+- **Edición inline** de registros
+- **Exportación de datos:**
   - CSV completo (todas las métricas)
   - CSV simplificado (solo métricas clave)
   - JSON (para backup o análisis técnico)
+- **Importación de backups JSON**
+- **Generación de prompts para Gemini** (hoy vs completo)
+
+### Gráficas de Tendencias
+- Visualización SVG interactiva
+- Curvas de dolor, distensión, reflujo
+- Adherencia % y Escala Bristol
+- Agrupación por día o por comida
+- Insights clínicos (mejora vs empeoramiento)
+- Modo demo con datos de ejemplo
+
+### Otros
+- Summary del día (adherencia %, último registro hace X min)
+- Validación de datos (requiere al menos un campo de adherencia)
+- Reset del protocolo con doble confirmación
+- PWA instalable en móvil
+- Modo offline completo
+- Notificaciones híbridas (Service Worker + fallback)
+- Sincronización reactiva entre pestañas
+- Toast notifications para feedback visual
 
 ## 🎨 Diseño UI/UX
 
@@ -74,6 +132,7 @@ Registro al final del día para cruzar acciones con respuesta fisiológica:
 - **Colores semánticos**:
   - Verde esmeralda (#10B981): Éxito/Adherencia
   - Rojo suave (#EF4444): Alertas/Síntomas severos
+  - Azul (#3B82F6): Información secundaria
 
 ## 🛠️ Instalación y Desarrollo
 
@@ -96,6 +155,9 @@ npm run build
 
 # Previsualizar build de producción
 npm run preview
+
+# Deploy a GitHub Pages
+npm run deploy
 ```
 
 ## 📂 Estructura del Proyecto
@@ -105,34 +167,57 @@ digestive-speedrun/
 ├── public/
 │   ├── manifest.json      # Configuración PWA
 │   ├── sw.js              # Service Worker para offline
-│   └── icon-*.png         # Iconos PWA (placeholders)
+│   ├── icon.svg           # Icono SVG personalizado
+│   └── icon-*.png         # Iconos PWA (192x192, 512x512)
 ├── src/
 │   ├── components/
-│   │   ├── Toggle.jsx     # Interruptor booleano SÍ/NO
-│   │   ├── Slider.jsx     # Deslizador numérico 0-10
-│   │   ├── GastricTimer.jsx # Timer de 45 min
-│   │   └── BristolScale.jsx # Selector Escala Bristol
+│   │   ├── Toggle.jsx          # Interruptor booleano SÍ/NO
+│   │   ├── Slider.jsx          # Deslizador numérico 0-10
+│   │   ├── GastricTimer.jsx    # Timer de 45 min
+│   │   ├── BristolScale.jsx    # Selector Escala Bristol
+│   │   ├── MealTypeSelector.jsx # Tipo de comida
+│   │   ├── ProtocolSettings.jsx # Configuración protocolo
+│   │   ├── HistoryView.jsx     # Histórico con filtros
+│   │   ├── ProgressBar.jsx     # Barra de progreso
+│   │   ├── ViewTransition.jsx  # Transiciones suaves
+│   │   ├── Toast.jsx           # Notificaciones visuales
+│   │   ├── FieldConfig.jsx     # Configuración de campos
+│   │   ├── ResetProtocol.jsx   # Reset completo
+│   │   ├── BackupRestore.jsx   # Backup/restore
+│   │   └── TrendsView.jsx      # Gráficas de tendencias
 │   ├── hooks/
-│   │   ├── useLocalStorage.js  # Persistencia en localStorage
-│   │   └── useNotifications.js # Web Push Notifications
-│   ├── App.jsx            # Componente principal (Dashboard)
-│   ├── main.jsx           # Punto de entrada
-│   └── index.css          # Estilos globales + Tailwind
-├── index.html             # HTML entry point
-├── package.json           # Dependencias y scripts
-├── vite.config.js         # Configuración de Vite
-├── tailwind.config.js     # Configuración de Tailwind
-└── postcss.config.js      # Configuración de PostCSS
+│   │   ├── useLocalStorage.js      # Persistencia en localStorage
+│   │   ├── useNotifications.js    # Web Push Notifications
+│   │   ├── usePersistentTimer.js  # Timer con persistencia
+│   │   ├── useProtocolDate.js    # Fecha inicio protocolo
+│   │   ├── useDailySummary.js    # Summary del día
+│   │   └── useFieldConfig.js     # Configuración de campos
+│   ├── utils/
+│   │   └── exportData.js         # Exportación/importación
+│   ├── App.jsx                # Componente principal (Dashboard)
+│   ├── main.jsx               # Punto de entrada
+│   └── index.css              # Estilos globales + Tailwind
+├── index.html                 # HTML entry point
+├── package.json               # Dependencias y scripts
+├── vite.config.js             # Configuración de Vite
+├── tailwind.config.js         # Configuración de Tailwind
+├── postcss.config.js          # Configuración de PostCSS
+├── HANDOFF.md                 # Documento de transferencia técnica
+├── AGENTS.md                  # Manual para desarrolladores
+└── README.md                  # Este archivo
 ```
 
 ## 💾 Persistencia de Datos
 
-El MVP usa **localStorage** para persistencia local sin backend:
+La app usa **localStorage** para persistencia local sin backend:
 
+- `digestive-logs`: Array de logs históricos (con timestamp)
 - `digestive-adherence`: Estado de adherencia diaria
 - `digestive-symptoms`: Estado de síntomas diarios
 - `digestive-notes`: Notas libres del usuario
-- `digestive-logs`: Array de logs históricos (con timestamp)
+- `digestive-protocol-start`: Fecha de inicio del protocolo
+- `digestive-timer-state`: Estado del timer (persistente)
+- `digestive-field-config`: Configuración de campos activos
 
 Los datos sobreviven a refresh del navegador pero no se sincronizan entre dispositivos.
 
@@ -142,7 +227,7 @@ La app solicita permiso para Web Push Notifications para:
 - Alerta cuando el timer de vaciado gástrico completa (45 min)
 - Confirmación de guardado exitoso del log diario
 
-Las notificaciones funcionan tanto en foreground como en background (cuando la app está instalada como PWA).
+Las notificaciones funcionan tanto en foreground como en background (cuando la app está instalada como PWA). Usa Service Worker con fallback a `new Notification()`.
 
 ## 🌐 PWA Installation
 
@@ -153,21 +238,47 @@ La app está configurada como Progressive Web App y puede instalarse:
 3. La app aparecerá como app nativa con icono propio
 4. Funciona offline gracias al Service Worker
 
-## 📊 Roadmap (Mejoras Futuras)
+## �️ Roadmap
 
-- [x] Vista de histórico de logs con gráficos de evolución
-- [x] Exportación de datos (CSV, JSON) para compartir con médico
-- [x] Configuración de fecha de inicio del protocolo
-- [x] Persistencia del timer de vaciado gástrico
-- [ ] Módulo de medicación/suplementos
-- [ ] Recordatorios programados (ej: cada 4h infusión)
-- [ ] Migración a IndexedDB para datos más grandes
-- [ ] Iconos PWA reales (actuales son placeholders)
-- [ ] Modo claro/oscuro
-- [ ] Animaciones de transición entre secciones
-- [ ] Análisis de correlación adherencia-síntomas
-- [ ] Gráficos de evolución en el histórico
-- [ ] Importación de datos (para restaurar backups)
+### v1.2 - Planificado
+Objetivo: Maximizar comodidad, seguridad y atajos para el usuario
+
+**Comodidad:**
+- [ ] Recordatorios programados (infusiones cada 4h)
+- [ ] Modo quick-entry (registro rápido sin cambiar de vista)
+- [ ] Gestión de suplementos/medicación
+- [ ] Presets de configuración (básico, intermedio, avanzado)
+
+**Seguridad:**
+- [ ] Backup automático periódico
+- [ ] Exportación programada (diario/semanal)
+- [ ] Pin/biometría para abrir la app (PWA)
+
+**Atajos:**
+- [ ] Quick actions en header (botón rápido para guardar)
+- [ ] Swipe gestures en móvil (swipe para borrar/editar)
+- [ ] Atajos de teclado en desktop
+
+**Variables/Datos:**
+- [ ] Más campos configurables (temperatura corporal, peso, etc.)
+- [ ] Custom presets de configuración
+- [ ] Múltiples protocolos (protocolo A, B, C)
+
+**Animaciones/Micro-interacciones:**
+- [ ] Celebraciones cuando se cumplen objetivos
+- [ ] Animaciones de carga más suaves
+- [ ] Feedback háptico en móvil (vibración al guardar)
+
+**Interfaz:**
+- [ ] Modo compacto para visualización rápida
+- [ ] Dark mode más refinado con más contrastes
+- [ ] Accesibilidad mejorada (VoiceOver, TalkBack)
+
+### v1.3 - Futuro
+- [ ] Navegación con enrutador formal (React Router)
+- [ ] Gamificación (streaks, achievements)
+- [ ] Migración a IndexedDB
+- [ ] Modo multiusuario (familia, caregivers)
 
 ## 🧪 Testing
 
