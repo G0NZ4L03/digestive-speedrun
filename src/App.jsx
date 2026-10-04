@@ -16,6 +16,7 @@ import { Toast } from './components/Toast';
 import { MealTypeSelector } from './components/MealTypeSelector';
 import { FieldConfig } from './components/FieldConfig';
 import { ResetProtocol } from './components/ResetProtocol';
+import { BackupRestore } from './components/BackupRestore';
 import { Bell, Calendar, Save, Settings, History as HistoryIcon, Sliders, TrendingUp, Clock } from 'lucide-react';
 
 // ============================================================================
@@ -60,6 +61,9 @@ const initialAdherence = {
   noSweeteners: false,        // Cero edulcorantes artificiales (sucralosa)
   noColdFood: false,          // Cero alimentos/bebidas frías
   fastingHours: 12,           // Horas de ayuno nocturno (objetivo >12h)
+  supplements: false,         // Suplementos activos (enzimas, probióticos)
+  mealTime: '',               // Horario de comida
+  mealLocation: 'home',       // Lugar comida (casa, trabajo, restaurante)
 };
 
 // ============================================================================
@@ -70,6 +74,10 @@ const initialSymptoms = {
   bloating: 0,                // Distensión abdominal / gas (0-10)
   reflux: 0,                  // Reflujo / acidez (0-10)
   bristolScale: 4,            // Escala de Bristol (1-7, 4 = ideal)
+  energy: 5,                  // Nivel de energía (0-10)
+  sleep: 5,                   // Calidad de sueño (0-10)
+  stress: 3,                  // Nivel de estrés (0-10)
+  bowelMovements: 1,          // Movimientos intestinales / deposiciones al día
 };
 
 function App() {
@@ -286,79 +294,185 @@ function App() {
           </section>
 
           {/* Módulo 2: Adherencia diaria */}
-          <section className="mb-6">
-            <h2 className="text-lg font-medium text-gray-100 mb-3 flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Adherencia Diaria
-            </h2>
-            <div className="space-y-3">
-              <Toggle
-                label="Arroz recién hecho y baboso"
-                description="Evitar almidón resistente"
-                value={adherence.freshRice}
-                onChange={(val) => setAdherence({ ...adherence, freshRice: val })}
-              />
-              <Toggle
-                label="Proteína escalfada/blanda"
-                description="Muy blanda, escalfada"
-                value={adherence.softProtein}
-                onChange={(val) => setAdherence({ ...adherence, softProtein: val })}
-              />
-              <Toggle
-                label="Cero edulcorantes artificiales"
-                description="Sin sucralosa ni similares"
-                value={adherence.noSweeteners}
-                onChange={(val) => setAdherence({ ...adherence, noSweeteners: val })}
-              />
-              <Toggle
-                label="Cero alimentos/bebidas frías"
-                description="Todo tibi o caliente"
-                value={adherence.noColdFood}
-                onChange={(val) => setAdherence({ ...adherence, noColdFood: val })}
-              />
-              <Slider
-                label="Horas de ayuno nocturno"
-                description="Objetivo: >12h (más horas = mejor)"
-                value={adherence.fastingHours}
-                onChange={(val) => setAdherence({ ...adherence, fastingHours: val })}
-                min={6}
-                max={16}
-                reverseColor={true}
-              />
-            </div>
-          </section>
+          {getActiveFields('adherence').length > 0 && (
+            <section className="mb-6">
+              <h2 className="text-lg font-medium text-gray-100 mb-3 flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Adherencia Diaria
+              </h2>
+              <div className="space-y-3">
+                {isFieldActive('adherence', 'freshRice') && (
+                  <Toggle
+                    label="Arroz recién hecho y baboso"
+                    description="Evitar almidón resistente"
+                    value={adherence.freshRice}
+                    onChange={(val) => setAdherence({ ...adherence, freshRice: val })}
+                  />
+                )}
+                {isFieldActive('adherence', 'softProtein') && (
+                  <Toggle
+                    label="Proteína escalfada/blanda"
+                    description="Muy blanda, escalfada"
+                    value={adherence.softProtein}
+                    onChange={(val) => setAdherence({ ...adherence, softProtein: val })}
+                  />
+                )}
+                {isFieldActive('adherence', 'noSweeteners') && (
+                  <Toggle
+                    label="Cero edulcorantes artificiales"
+                    description="Sin sucralosa ni similares"
+                    value={adherence.noSweeteners}
+                    onChange={(val) => setAdherence({ ...adherence, noSweeteners: val })}
+                  />
+                )}
+                {isFieldActive('adherence', 'noColdFood') && (
+                  <Toggle
+                    label="Cero alimentos/bebidas frías"
+                    description="Todo tibio o caliente"
+                    value={adherence.noColdFood}
+                    onChange={(val) => setAdherence({ ...adherence, noColdFood: val })}
+                  />
+                )}
+                {isFieldActive('adherence', 'fastingHours') && (
+                  <Slider
+                    label="Horas de ayuno nocturno"
+                    description="Objetivo: >12h (más horas = mejor)"
+                    value={adherence.fastingHours}
+                    onChange={(val) => setAdherence({ ...adherence, fastingHours: val })}
+                    min={6}
+                    max={16}
+                    reverseColor={true}
+                  />
+                )}
+                {isFieldActive('adherence', 'supplements') && (
+                  <Toggle
+                    label="Suplementos / Enzimas"
+                    description="Tomas según pauta clínica"
+                    value={adherence.supplements || false}
+                    onChange={(val) => setAdherence({ ...adherence, supplements: val })}
+                  />
+                )}
+                {isFieldActive('adherence', 'mealTime') && (
+                  <div className="p-4 bg-dark-surface rounded-xl">
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                      Horario de la comida
+                    </label>
+                    <input
+                      type="time"
+                      value={adherence.mealTime || ''}
+                      onChange={(e) => setAdherence({ ...adherence, mealTime: e.target.value })}
+                      className="w-full p-2.5 bg-gray-800 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-dark-success"
+                    />
+                  </div>
+                )}
+                {isFieldActive('adherence', 'mealLocation') && (
+                  <div className="p-4 bg-dark-surface rounded-xl">
+                    <label className="block text-sm font-medium text-gray-200 mb-2">
+                      Lugar de la comida
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'home', label: 'Casa' },
+                        { id: 'work', label: 'Trabajo' },
+                        { id: 'outside', label: 'Fuera' },
+                      ].map((loc) => (
+                        <button
+                          key={loc.id}
+                          type="button"
+                          onClick={() => setAdherence({ ...adherence, mealLocation: loc.id })}
+                          className={`p-2 rounded-lg text-sm font-medium transition-colors ${
+                            (adherence.mealLocation || 'home') === loc.id
+                              ? 'bg-dark-success text-white'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          {loc.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Módulo 3: Síntomas */}
-          <section className="mb-6">
-            <h2 className="text-lg font-medium text-gray-100 mb-3 flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Síntomas
-            </h2>
-            <div className="space-y-3">
-              <Slider
-                label="Dolor Nervio Frénico"
-                description="Pinzamiento clavícula derecha"
-                value={symptoms.phrenicPain}
-                onChange={(val) => setSymptoms({ ...symptoms, phrenicPain: val })}
-              />
-              <Slider
-                label="Distensión Abdominal / Gas"
-                description="Sensación de hinchazón"
-                value={symptoms.bloating}
-                onChange={(val) => setSymptoms({ ...symptoms, bloating: val })}
-              />
-              <Slider
-                label="Reflujo / Acidez"
-                description="Sensación de ardor"
-                value={symptoms.reflux}
-                onChange={(val) => setSymptoms({ ...symptoms, reflux: val })}
-              />
-              <BristolScale
-                value={symptoms.bristolScale}
-                onChange={(val) => setSymptoms({ ...symptoms, bristolScale: val })}
-              />
-            </div>
-          </section>
+          {getActiveFields('symptoms').length > 0 && (
+            <section className="mb-6">
+              <h2 className="text-lg font-medium text-gray-100 mb-3 flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Síntomas
+              </h2>
+              <div className="space-y-3">
+                {isFieldActive('symptoms', 'phrenicPain') && (
+                  <Slider
+                    label="Dolor Nervio Frénico"
+                    description="Pinzamiento clavícula derecha"
+                    value={symptoms.phrenicPain}
+                    onChange={(val) => setSymptoms({ ...symptoms, phrenicPain: val })}
+                  />
+                )}
+                {isFieldActive('symptoms', 'bloating') && (
+                  <Slider
+                    label="Distensión Abdominal / Gas"
+                    description="Sensación de hinchazón"
+                    value={symptoms.bloating}
+                    onChange={(val) => setSymptoms({ ...symptoms, bloating: val })}
+                  />
+                )}
+                {isFieldActive('symptoms', 'reflux') && (
+                  <Slider
+                    label="Reflujo / Acidez"
+                    description="Sensación de ardor"
+                    value={symptoms.reflux}
+                    onChange={(val) => setSymptoms({ ...symptoms, reflux: val })}
+                  />
+                )}
+                {isFieldActive('symptoms', 'bristolScale') && (
+                  <BristolScale
+                    value={symptoms.bristolScale}
+                    onChange={(val) => setSymptoms({ ...symptoms, bristolScale: val })}
+                  />
+                )}
+                {isFieldActive('symptoms', 'energy') && (
+                  <Slider
+                    label="Nivel de Energía"
+                    description="Vitalidad percibida (0 = agotado, 10 = excelente)"
+                    value={symptoms.energy ?? 5}
+                    onChange={(val) => setSymptoms({ ...symptoms, energy: val })}
+                    reverseColor={true}
+                  />
+                )}
+                {isFieldActive('symptoms', 'sleep') && (
+                  <Slider
+                    label="Calidad de Sueño"
+                    description="Descanso nocturno (0 = pésimo, 10 = reparador)"
+                    value={symptoms.sleep ?? 5}
+                    onChange={(val) => setSymptoms({ ...symptoms, sleep: val })}
+                    reverseColor={true}
+                  />
+                )}
+                {isFieldActive('symptoms', 'stress') && (
+                  <Slider
+                    label="Nivel de Estrés"
+                    description="Tensión o carga percibida (0 = relajado, 10 = estrés agudo)"
+                    value={symptoms.stress ?? 3}
+                    onChange={(val) => setSymptoms({ ...symptoms, stress: val })}
+                  />
+                )}
+                {isFieldActive('symptoms', 'bowelMovements') && (
+                  <Slider
+                    label="Deposiciones al día"
+                    description="Frecuencia de evacuaciones de hoy"
+                    value={symptoms.bowelMovements ?? 1}
+                    onChange={(val) => setSymptoms({ ...symptoms, bowelMovements: val })}
+                    min={0}
+                    max={8}
+                  />
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Módulo 4: Notas libres */}
           <section className="mb-6">
@@ -409,6 +523,10 @@ function App() {
             />
           </div>
         </ProtocolSettings>
+
+        <div className="mt-4">
+          <BackupRestore onToast={showToast} />
+        </div>
         
         <div className="mt-6">
           <ResetProtocol onReset={resetProtocol} />

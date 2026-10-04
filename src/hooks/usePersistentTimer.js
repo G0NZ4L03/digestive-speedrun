@@ -92,23 +92,6 @@ export function usePersistentTimer(initialTime, onComplete) {
     }
   };
 
-  // Corregir tiempo cuando la app vuelve a primer plano
-  const handleVisibilityChange = () => {
-    if (!document.hidden && isRunning && lastTickRef.current) {
-      const elapsed = Math.floor((Date.now() - lastTickRef.current) / 1000);
-      setTimeLeft((prev) => {
-        const newTime = Math.max(0, prev - elapsed);
-        if (newTime === 0) {
-          setIsRunning(false);
-          saveState(null, false);
-          onComplete?.();
-          return 0;
-        }
-        return newTime;
-      });
-    }
-  };
-
   // Efecto: maneja el intervalo del timer
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
@@ -138,8 +121,24 @@ export function usePersistentTimer(initialTime, onComplete) {
     };
   }, [isRunning, timeLeft, onComplete]);
 
-  // Efecto: detecta cuando la app vuelve a primer plano
+  // Efecto: detecta cuando la app vuelve a primer plano para sincronizar el tiempo transcurrido
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isRunning && lastTickRef.current) {
+        const elapsed = Math.floor((Date.now() - lastTickRef.current) / 1000);
+        setTimeLeft((prev) => {
+          const newTime = Math.max(0, prev - elapsed);
+          if (newTime === 0) {
+            setIsRunning(false);
+            saveState(null, false);
+            onComplete?.();
+            return 0;
+          }
+          return newTime;
+        });
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);

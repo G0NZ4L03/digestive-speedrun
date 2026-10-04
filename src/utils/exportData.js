@@ -169,6 +169,87 @@ export function exportToSimpleCSV(filename = 'digestive-logs-simple.csv') {
   }
 }
 
+/**
+ * Importa y valida logs desde un archivo JSON para restaurar backup
+ * @param {File} file - Archivo JSON cargado por el usuario
+ * @returns {Promise<{ success: boolean, count?: number, newCount?: number, totalCount?: number, error?: string }>}
+ */
+export async function importFromJSON(file) {
+  return new Promise((resolve) => {
+    if (!file) {
+      resolve({ success: false, error: 'No se seleccionó ningún archivo.' });
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
+      resolve({ success: false, error: 'El archivo debe tener formato .json válido.' });
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result;
+        if (!text || typeof text !== 'string') {
+          resolve({ success: false, error: 'El archivo está vacío o es ilegible.' });
+          return;
+        }
+
+        const parsed = JSON.parse(text);
+        // Soporta array directo de logs o un objeto { logs: [...] }
+        const importedLogs = Array.isArray(parsed) ? parsed : parsed?.logs;
+
+        if (!Array.isArray(importedLogs) || importedLogs.length === 0) {
+          resolve({ success: false, error: 'El archivo no contiene una lista de registros.' });
+          return;
+        }
+
+        // Validar que los elementos tengan la estructura mínima de un log
+        const isValid = importedLogs.every(
+          (item) => item && typeof item === 'object' && item.date && (item.adherence || item.symptoms)
+        );
+
+        if (!isValid) {
+          resolve({
+            success: false,
+            error: 'La estructura de los registros no coincide con el formato del protocolo.',
+          });
+          return;
+        }
+
+        // Obtener logs actuales para fusionar sin duplicar fechas exactas
+        const existingLogs = JSON.parse(localStorage.getItem('digestive-logs') || '[]');
+        const existingDates = new Set(existingLogs.map((l) => l.date));
+
+        const newLogs = importedLogs.filter((l) => !existingDates.has(l.date));
+        const merged = [...newLogs, ...existingLogs].sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        );
+
+        localStorage.setItem('digestive-logs', JSON.stringify(merged));
+        window.dispatchEvent(new Event('digestive-logs-updated'));
+
+        resolve({
+          success: true,
+          count: importedLogs.length,
+          newCount: newLogs.length,
+          totalCount: merged.length,
+        });
+      } catch (err) {
+        console.error('Error parseando JSON de backup:', err);
+        resolve({ success: false, error: 'El archivo JSON está dañado o no tiene formato válido.' });
+      }
+    };
+
+    reader.onerror = () => {
+      resolve({ success: false, error: 'Error al leer el archivo desde el dispositivo.' });
+    };
+
+    reader.readAsText(file);
+  });
+}
+
 /*
  * RAZÓN DE ESTA UTILIDAD:
  * - Portabilidad: Datos en formatos estándar intercambiables

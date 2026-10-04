@@ -120,9 +120,11 @@ npm run generate-icons
 
 - **Timer de vaciado gástrico**: Cuenta atrás de 45 minutos (`GastricTimer` + `usePersistentTimer`), resistente al cierre de app o cambio de pestaña gracias a Page Visibility API y cálculo diferencial por timestamps (`lastTick`).
 - **Módulo de Adherencia y Síntomas**: Registro completo con componentes táctiles (`Toggle`, `Slider`, `BristolScale`) y selector de consistencia de ingesta (`MealTypeSelector`).
+- **Configuración dinámica de campos (`useFieldConfig`)**: El Dashboard en `App.jsx` respeta fielmente la activación/desactivación de campos de `FieldConfig`, ocultando secciones si no hay métricas activas y renderizando campos opcionales (`supplements`, `mealTime`, `mealLocation`, `energy`, `sleep`, `stress`, `bowelMovements`).
 - **Persistencia básica**: Guardado local reactivo de estado actual (`digestive-adherence`, `digestive-symptoms`, `digestive-notes`) y de registros acumulados (`digestive-logs`).
 - **Histórico de logs**: Listado cronológico en `HistoryView` con visualización expandible, badges de severidad por colores y eliminación individual o colectiva. La lista es ahora **completamente reactiva** (sin recarga de página).
 - **Exportación de datos completa**: Descarga directa en JSON, CSV completo y CSV resumido (con cabecera UTF-8 BOM para compatibilidad con Microsoft Excel), incluyendo la columna `Tipo de Ingesta` (Sólida/Pastosa/Líquida).
+- **Copia de seguridad y restauración (`BackupRestore`)**: Importador robusto `importFromJSON` en `src/utils/exportData.js` y componente visual en Ajustes para restaurar copias de seguridad de logs, validando formato, evitando duplicados por fecha y sincronizando reactivamente.
 - **Generador de prompts para LLM**: Función en `HistoryView` que formatea el historial o el día actual en Markdown estructurado y lo copia al portapapeles para análisis en Gemini.
 - **PWA con rutas correctas para GitHub Pages**: `main.jsx` usa `import.meta.env.BASE_URL` para registrar el SW; `index.html` usa `%BASE_URL%` para el icono y el manifest; `manifest.json` usa `./` en `start_url`, `scope` e iconos. El build de Vite resuelve todo correctamente bajo `/digestive-speedrun/`.
 - **Notificaciones PWA híbridas y robustas**: `useNotifications.js` utiliza `registration.showNotification` con timeout de 2s vía `Promise.race` para evitar bloqueos si no hay SW, fallback automático a `new Notification` y solicitud de permisos exclusivamente bajo gesto del usuario.
@@ -134,14 +136,12 @@ npm run generate-icons
 
 ## 6. Qué está a medias o incompleto
 
-- **Desconexión de `useFieldConfig` en el Dashboard**: Aunque existe `FieldConfig.jsx` y `useFieldConfig.js` con soporte para campos avanzados (`supplements`, `energy`, `sleep`, `stress`, `mealTime`, `mealLocation`), en `App.jsx` los campos del dashboard están codificados fijos en JSX y no utilizan `isFieldActive` ni `getActiveFields`.
 - **Service Worker incompleto**: `public/sw.js` cachea `['./']` (corregido de `['/']`). No realiza precacheo de los bundles `assets/*.js` o `assets/*.css`, ni implementa el evento `activate` para limpiar versiones antiguas de caché (`digestive-sr-v1`).
 - **Navegación sin enrutador**: La alternancia de vistas se gestiona mediante un estado local `currentView` sin URLs ni soporte para el botón de retroceso nativo del navegador móvil.
 - **Roadmap clínico pendiente (especificado en README.md)**:
   - Módulo de suplementación y medicación activa.
   - Recordatorios periódicos programados (ej. infusiones cada 4 horas).
   - Gráficas visuales de evolución temporal de síntomas.
-  - Importador de datos (para restaurar backups JSON).
   - Edición de registros guardados (para corregir errores sin borrar).
   - Filtros en histórico (por tipo de comida, por rango de fechas).
 
@@ -167,13 +167,12 @@ npm run generate-icons
   - Normalizado a fechas locales sin `Math.abs`, acotado estrictamente a rango 1-14 y refresco automático por `visibilitychange`.
 - ~~**Inconsistencia de `mealType` en exportación CSV**~~ ✅ **RESUELTO**:
   - `exportData.js` incluye `Tipo de Ingesta` con mapeo a Sólida, Pastosa o Líquida en `exportToCSV` y `exportToSimpleCSV`.
-- ~~**Código muerto y advertencias de linter reducidas drásticamente**~~ ✅ **RESUELTO**:
-  - Eliminado `generateGeminiPrompt` duplicado en `App.jsx`, purgados imports no usados (`Copy`, `useEffect`) y corregida inicialización en `useFieldConfig.js`. De 14 avisos iniciales se ha bajado a solo **3 avisos** en `oxlint`.
-- **Riesgo crítico de pérdida de datos por dependencia exclusiva de `localStorage`**:
-  - Si el usuario borra datos del navegador o el sistema operativo móvil purga almacenamiento por falta de espacio (comportamiento documentado en WebKit/iOS), se pierde todo el historial sin posibilidad de recuperación hasta implementar un importador de backups.
-- **3 advertencias residuales en `npm run lint` (`oxlint`)**:
-  - Variables no utilizadas aún pendientes de conectar en Dashboard (`getActiveFields`, `isFieldActive` en `App.jsx`).
-  - Dependencia de efecto en `usePersistentTimer.js` (`handleVisibilityChange`).
+- ~~**Desconexión de `useFieldConfig` en el Dashboard**~~ ✅ **RESUELTO**:
+  - `isFieldActive` y `getActiveFields` conectados completamente en `App.jsx` tanto para adherencia como para síntomas, soportando campos opcionales y ocultación dinámica de bloques vacíos.
+- ~~**Riesgo crítico de pérdida de datos por dependencia exclusiva de `localStorage`**~~ ✅ **RESUELTO**:
+  - Implementada utilidad `importFromJSON` y componente `BackupRestore` en la vista de Ajustes para restaurar copias de seguridad JSON previas.
+- ~~**Advertencias en `npm run lint` (`oxlint`)**~~ ✅ **RESUELTO**:
+  - De las 14 advertencias iniciales, se han solventado todas hasta alcanzar **0 advertencias y 0 errores** en todo el proyecto.
 
 ---
 
@@ -183,14 +182,16 @@ npm run generate-icons
 
 1. ~~**Corregir rutas PWA y Service Worker para subpath**~~ ✅ commit `f80192e`
 2. ~~**Subsanar reactividad en `useDailySummary` y eliminar `window.location.reload()`**~~ ✅ commit `521ea6f`
-3. ~~**Actualizar API de notificaciones para móvil**~~ ✅ resuelto con SW registration y fallback
-4. ~~**Robustecer cálculo de días en `useProtocolDate`**~~ ✅ resuelto con medianoche local y rango 1-14
-5. ~~**Incluir `mealType` en exportación CSV**~~ ✅ resuelto en CSV completo y simple
-6. ~~**Limpiar código muerto y resolver lints principales**~~ ✅ `generateGeminiPrompt` eliminado, lints de 14 a 3
-7. **Conectar o simplificar `useFieldConfig`**: Usar `isFieldActive` en el Dashboard (`App.jsx`) para que la configuración de campos tenga efecto real.
-8. **Implementar importación JSON**: Crear `importFromJSON` en la vista de configuración para restaurar backups y mitigar riesgo de pérdida de datos.
+3. ~~**Actualizar API de notificaciones para móvil**~~ ✅ commit `5445dd9`
+4. ~~**Robustecer cálculo de días en `useProtocolDate`**~~ ✅ commit `5445dd9`
+5. ~~**Incluir `mealType` en exportación CSV**~~ ✅ commit `5445dd9`
+6. ~~**Limpiar código muerto y resolver lints principales**~~ ✅ commit `5445dd9`
+7. ~~**Conectar `useFieldConfig` en el Dashboard**~~ ✅ resuelto dinámicamente en `App.jsx`
+8. ~~**Implementar importación JSON y copias de seguridad**~~ ✅ `importFromJSON` + `BackupRestore.jsx`
 9. **Implementar edición de registros guardados**: Permitir corregir un log existente sin borrarlo (modal de edición inline en `HistoryView`).
 10. **Añadir filtros al histórico**: Por tipo de comida (`solid`/`soft`/`liquid`) y por rango de fechas.
 11. **Completar ciclo de vida del Service Worker**: Evento `activate` para purgar cachés obsoletas + precacheo de bundles de assets compilados.
+12. **Gráficas visuales de evolución temporal de síntomas**: Visualización interactiva de tendencias de dolor, hinchazón y consistencia Bristol en 14 días.
+
 
 
