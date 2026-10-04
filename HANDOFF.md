@@ -122,7 +122,7 @@ npm run generate-icons
 - **Módulo de Adherencia y Síntomas**: Registro completo con componentes táctiles (`Toggle`, `Slider`, `BristolScale`) y selector de consistencia de ingesta (`MealTypeSelector`).
 - **Configuración dinámica de campos (`useFieldConfig`)**: El Dashboard en `App.jsx` respeta fielmente la activación/desactivación de campos de `FieldConfig`, ocultando secciones si no hay métricas activas y renderizando campos opcionales (`supplements`, `mealTime`, `mealLocation`, `energy`, `sleep`, `stress`, `bowelMovements`).
 - **Persistencia básica**: Guardado local reactivo de estado actual (`digestive-adherence`, `digestive-symptoms`, `digestive-notes`) y de registros acumulados (`digestive-logs`).
-- **Histórico de logs**: Listado cronológico en `HistoryView` con visualización expandible, badges de severidad por colores y eliminación individual o colectiva. La lista es ahora **completamente reactiva** (sin recarga de página).
+- **Histórico con filtrado avanzado y edición en línea**: Listado cronológico en `HistoryView` con visualización expandible, badges de severidad por colores, eliminación individual o colectiva, y ahora **filtros interactivos** (por tipo de comida: Sólida/Pastosa/Líquida; por alertas clínicas: Síntomas > 5, Adherencia < 75%) y **edición inline completa** de registros pasados (tipo de comida, adherencia, síntomas, escala Bristol y notas) sincronizado de forma reactiva sin recarga de página.
 - **Exportación de datos completa**: Descarga directa en JSON, CSV completo y CSV resumido (con cabecera UTF-8 BOM para compatibilidad con Microsoft Excel), incluyendo la columna `Tipo de Ingesta` (Sólida/Pastosa/Líquida).
 - **Copia de seguridad y restauración (`BackupRestore`)**: Importador robusto `importFromJSON` en `src/utils/exportData.js` y componente visual en Ajustes para restaurar copias de seguridad de logs, validando formato, evitando duplicados por fecha y sincronizando reactivamente.
 - **Generador de prompts para LLM**: Función en `HistoryView` que formatea el historial o el día actual en Markdown estructurado y lo copia al portapapeles para análisis en Gemini.
@@ -188,8 +188,8 @@ npm run generate-icons
 6. ~~**Limpiar código muerto y resolver lints principales**~~ ✅ commit `5445dd9`
 7. ~~**Conectar `useFieldConfig` en el Dashboard**~~ ✅ resuelto dinámicamente en `App.jsx`
 8. ~~**Implementar importación JSON y copias de seguridad**~~ ✅ `importFromJSON` + `BackupRestore.jsx`
-9. **Implementar edición de registros guardados**: Permitir corregir un log existente sin borrarlo (modal de edición inline en `HistoryView`).
-10. **Añadir filtros al histórico**: Por tipo de comida (`solid`/`soft`/`liquid`) y por rango de fechas.
+9. ~~**Implementar edición de registros guardados**~~ ✅ Edición inline en `HistoryView` con guardado reactivo y soporte de campos estándar y opcionales
+10. ~~**Añadir filtros al histórico**~~ ✅ Filtros interactivos por tipo de comida (sólida/pastosa/líquida) y alertas clínicas (síntomas > 5, adherencia < 75%)
 11. **Completar ciclo de vida del Service Worker**: Evento `activate` para purgar cachés obsoletas + precacheo de bundles de assets compilados.
 12. **Gráficas visuales de evolución temporal de síntomas**: Visualización interactiva de tendencias de dolor, hinchazón y consistencia Bristol en 14 días.
 
