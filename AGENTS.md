@@ -82,6 +82,12 @@ El proyecto está configurado como PWA:
 - `digestive-logs`: Array de logs históricos
 - `digestive-protocol-start`: Fecha de inicio del protocolo (YYYY-MM-DD)
 - `digestive-timer-state`: Estado del timer de vaciado gástrico (persistente)
+- `digestive-gemini-key`: API key de Gemini (encriptada con Web Crypto API)
+- `digestive-gemini-model`: Modelo seleccionado (default: 'gemini-1.5-pro')
+- `digestive-gemini-requests`: Contador de requests en última hora (rate limiting)
+- `digestive-gemini-tokens`: Contador de tokens usados hoy
+- `digestive-first-run-seen`: Flag si wizard de introducción a IA se mostró
+- `digestive-last-analysis`: Último análisis de IA guardado
 
 ## 🐛 Debugging
 
@@ -148,14 +154,50 @@ refactor: simplificar hook useLocalStorage
 ### Hooks Personalizados
 - `useLocalStorage`: Sincroniza estado con localStorage
 - `useNotifications`: Gestiona Web Push Notifications
+- `useGeminiAPI`: Llamadas a Gemini API con error handling y timeout
+- `useGeminiRateLimit`: Rate limiting y tracking de tokens (límite: 10/hora local, 1500/día Gemini)
+
+### Utilidades
+- `exportData`: Exportación/importación de datos (CSV, JSON)
+- `geminiPrompts`: Generación de prompts optimizados para Gemini
+- `cryptoUtils`: Encriptación/desencriptación con Web Crypto API (AES-GCM)
 
 ### Componente Principal
 - `App`: Dashboard que orquesta todos los módulos
 
 ## 🔐 Seguridad
 
-- No se almacenan credenciales ni datos sensibles
-- localStorage es vulnerable a XSS (pero aceptable para MVP personal)
+### Integración con Gemini API (v1.2)
+- **Opt-in Model:** La IA es opt-in, no obligatoria. Privacidad por defecto.
+- **API Key Storage:** Encriptada con Web Crypto API (AES-GCM) usando PIN del usuario
+- **Encriptación:**
+  - Algoritmo: AES-GCM (Galois/Counter Mode)
+  - Key derivation: PBKDF2 con 100,000 iteraciones
+  - IV: Random por cada encriptación
+  - PIN mínimo: 4 caracteres
+- **Rate Limiting:**
+  - Límite local: 10 requests/hora (prevenir uso accidental)
+  - Límite Gemini: 1500 requests/día (tier gratuito)
+  - Política: NUNCA pagar, usar solo tier gratuito
+- **Datos que se envían a Gemini:**
+  - Logs de adherencia y síntomas
+  - Tipo de comida
+  - Notas
+  - Fecha/hora de registros
+- **Datos que NO se envían:**
+  - Identificadores personales
+  - Ubicación
+  - Metadata
+- **Flujo Opt-in:**
+  1. First-run wizard explica feature de IA
+  2. Usuario configura API key + PIN
+  3. Usuario elige modelo (gemini-1.5-pro default, gemini-2.0-flash opcional)
+  4. Confirmación antes de enviar datos
+  5. Usuario puede borrar API key en cualquier momento
+
+### Seguridad General
+- No se almacenan credenciales ni datos sensibles sin encriptación
+- localStorage es vulnerable a XSS (mitigado con encriptación para API key)
 - Para producción con datos sensibles, considerar:
   - Migrar a backend con autenticación
   - Usar IndexedDB con encriptación
